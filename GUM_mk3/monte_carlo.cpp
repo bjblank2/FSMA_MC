@@ -318,19 +318,19 @@ void init_calcJK(int site, vector<Atom> &atom_list, vector<Rule> &cluster_rules,
 							if (cluster_rules[i].getNeighborArrangment() == "PERM") {
 								if (home_species != neighbor_species) {
 									if (cluster_rules[i].getPhase() == 1) {
-										atom_list[site].incJK(cluster_rules[i].getEnergyContribution(),0);
+										atom_list[site].J += cluster_rules[i].getEnergyContribution();
 									}
 									if (cluster_rules[i].getPhase() == 0) {
-										atom_list[site].incJK(0,cluster_rules[i].getEnergyContribution());
+										atom_list[site].K += cluster_rules[i].getEnergyContribution();
 									}
 								}
 							}
 							if (cluster_rules[i].getNeighborArrangment() == "COMB") {
 								if (cluster_rules[i].getPhase() == 1) {
-									atom_list[site].incJK(cluster_rules[i].getEnergyContribution(), 0);
+									atom_list[site].J += cluster_rules[i].getEnergyContribution();
 								}
 								if (cluster_rules[i].getPhase() == 0) {
-									atom_list[site].incJK(0, cluster_rules[i].getEnergyContribution());
+									atom_list[site].K += cluster_rules[i].getEnergyContribution();
 								}
 							}
 						}
@@ -346,19 +346,19 @@ void init_calcJK(int site, vector<Atom> &atom_list, vector<Rule> &cluster_rules,
 							if (spin_rules[i].getNeighborArrangment() == "PERM") {
 								if (home_species != neighbor_species) {
 									if (spin_rules[i].getPhase() == 1) {
-										atom_list[site].incJK(cluster_rules[i].getEnergyContribution()*home_spin*neighbor_spin, 0);
+										atom_list[site].J += spin_rules[i].getEnergyContribution()*home_spin*neighbor_spin;
 									}
 									if (spin_rules[i].getPhase() == 0) {
-										atom_list[site].incJK(0, cluster_rules[i].getEnergyContribution()*home_spin*neighbor_spin);
+										atom_list[site].K += spin_rules[i].getEnergyContribution()*home_spin*neighbor_spin;
 									}
 								}
 							}
 							if (spin_rules[i].getNeighborArrangment() == "COMB") {
 								if (spin_rules[i].getPhase() == 1) {
-									atom_list[site].incJK(cluster_rules[i].getEnergyContribution()*home_spin*neighbor_spin, 0);
+									atom_list[site].J += spin_rules[i].getEnergyContribution()*home_spin*neighbor_spin;
 								}
 								if (spin_rules[i].getPhase() == 0) {
-									atom_list[site].incJK(0, cluster_rules[i].getEnergyContribution()*home_spin*neighbor_spin);
+									atom_list[site].K += spin_rules[i].getEnergyContribution()*home_spin*neighbor_spin;
 								}
 							}
 						}
@@ -399,19 +399,19 @@ void re_calcJK(int site, vector<Atom> &atom_list, vector<Rule> &cluster_rules, v
 							if (cluster_rules[i].getNeighborArrangment() == "PERM") {
 								if (home_species != neighbor_species) {
 									if (cluster_rules[i].getPhase() == 1) {
-										atom_list[site].incJK(cluster_rules[i].getEnergyContribution(), 0);
+										atom_list[site].J += cluster_rules[i].getEnergyContribution();
 									}
 									if (cluster_rules[i].getPhase() == 0) {
-										atom_list[site].incJK(0, cluster_rules[i].getEnergyContribution());
+										atom_list[site].K += cluster_rules[i].getEnergyContribution();
 									}
 								}
 							}
 							if (cluster_rules[i].getNeighborArrangment() == "COMB") {
 								if (cluster_rules[i].getPhase() == 1) {
-									atom_list[site].incJK(cluster_rules[i].getEnergyContribution(), 0);
+									atom_list[site].J += cluster_rules[i].getEnergyContribution();
 								}
 								if (cluster_rules[i].getPhase() == 0) {
-									atom_list[site].incJK(0, cluster_rules[i].getEnergyContribution());
+									atom_list[site].K += cluster_rules[i].getEnergyContribution();
 								}
 							}
 						}
@@ -427,23 +427,23 @@ void re_calcJK(int site, vector<Atom> &atom_list, vector<Rule> &cluster_rules, v
 							if (spin_rules[i].getNeighborArrangment() == "PERM") {
 								if (home_species != neighbor_species) {
 									if (spin_rules[i].getPhase() == 1) {
-										atom_list[site].incJK(cluster_rules[i].getEnergyContribution()*home_spin*neighbor_spin, 0);
-										atom_list[neighbor_index].incJK(2 * cluster_rules[i].getEnergyContribution()*home_spin*neighbor_spin, 0);
+										atom_list[site].J += spin_rules[i].getEnergyContribution()*home_spin*neighbor_spin;
+										atom_list[neighbor_index].J += 2 * spin_rules[i].getEnergyContribution()*home_spin*neighbor_spin;
 									}
 									if (spin_rules[i].getPhase() == 0) {
-										atom_list[site].incJK(0, cluster_rules[i].getEnergyContribution()*home_spin*neighbor_spin);
-										atom_list[neighbor_index].incJK(0, 2 * cluster_rules[i].getEnergyContribution()*home_spin*neighbor_spin);
+										atom_list[site].K += spin_rules[i].getEnergyContribution()*home_spin*neighbor_spin;
+										atom_list[neighbor_index].K += 2 * spin_rules[i].getEnergyContribution()*home_spin*neighbor_spin;
 									}
 								}
 							}
 							if (spin_rules[i].getNeighborArrangment() == "COMB") {
 								if (spin_rules[i].getPhase() == 1) {
-									atom_list[site].incJK(cluster_rules[i].getEnergyContribution()*home_spin*neighbor_spin, 0);
-									atom_list[neighbor_index].incJK(2 * cluster_rules[i].getEnergyContribution()*home_spin*neighbor_spin, 0);
+									atom_list[site].J += spin_rules[i].getEnergyContribution()*home_spin*neighbor_spin;
+									atom_list[neighbor_index].J += 2 * spin_rules[i].getEnergyContribution()*home_spin*neighbor_spin;
 								}
 								if (spin_rules[i].getPhase() == 0) {
-									atom_list[site].incJK(0, cluster_rules[i].getEnergyContribution()*home_spin*neighbor_spin);
-									atom_list[neighbor_index].incJK(0, 2 * cluster_rules[i].getEnergyContribution()*home_spin*neighbor_spin);
+									atom_list[site].K += spin_rules[i].getEnergyContribution()*home_spin*neighbor_spin;
+									atom_list[neighbor_index].K += 2 * spin_rules[i].getEnergyContribution()*home_spin*neighbor_spin;
 								}
 							}
 						}
@@ -468,8 +468,8 @@ float evalSiteEnergy6(float temp, int site, vector<Atom> &atom_list, vector<Rule
 		neighbor_site = atom_list[site].neighbors[neighbor];
 		neighbor_phase = atom_list[site].getNeighborPhase(neighbor, atom_list);
 		//pair_calcJK(site, neighbor_site, atom_list, J_K);
-		J_K[0] = (atom_list[site].J + atom_list[neighbor_site].J) / 4 / atom_list[site].getNumbNeighbors();
-		J_K[1] = (atom_list[site].K + atom_list[neighbor_site].K) / 4 / atom_list[site].getNumbNeighbors();
+		J_K[0] = (atom_list[site].J + atom_list[neighbor_site].J) / 2 / atom_list[site].getNumbNeighbors();
+		J_K[1] = (atom_list[site].K + atom_list[neighbor_site].K) / 2 / atom_list[site].getNumbNeighbors();
 		sig1 = 1 - pow(site_phase, 2);
 		sig2 = 1 - pow(neighbor_phase, 2);
 		site_energy += J_K[0] * site_phase*neighbor_phase + J_K[1] * sig1*sig2;
