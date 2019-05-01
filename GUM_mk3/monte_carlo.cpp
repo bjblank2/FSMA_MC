@@ -346,19 +346,19 @@ void init_calcJK(int site, vector<Atom> &atom_list, vector<Rule> &cluster_rules,
 							if (spin_rules[i].getNeighborArrangment() == "PERM") {
 								if (home_species != neighbor_species) {
 									if (spin_rules[i].getPhase() == 1) {
-										atom_list[site].incJK(cluster_rules[i].getEnergyContribution(), 0);
+										atom_list[site].incJK(cluster_rules[i].getEnergyContribution()*home_spin*neighbor_spin, 0);
 									}
 									if (spin_rules[i].getPhase() == 0) {
-										atom_list[site].incJK(0, cluster_rules[i].getEnergyContribution());
+										atom_list[site].incJK(0, cluster_rules[i].getEnergyContribution()*home_spin*neighbor_spin);
 									}
 								}
 							}
 							if (spin_rules[i].getNeighborArrangment() == "COMB") {
 								if (spin_rules[i].getPhase() == 1) {
-									atom_list[site].incJK(cluster_rules[i].getEnergyContribution(), 0);
+									atom_list[site].incJK(cluster_rules[i].getEnergyContribution()*home_spin*neighbor_spin, 0);
 								}
 								if (spin_rules[i].getPhase() == 0) {
-									atom_list[site].incJK(0, cluster_rules[i].getEnergyContribution());
+									atom_list[site].incJK(0, cluster_rules[i].getEnergyContribution()*home_spin*neighbor_spin);
 								}
 							}
 						}
