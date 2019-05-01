@@ -464,12 +464,12 @@ float evalSiteEnergy6(float temp, int site, vector<Atom> &atom_list, vector<Rule
 	int site_spin = atom_list[site].getSpin();
 	int sig1;
 	int sig2;
-	for (int neighbor = 0; neighbor < atom_list[site].getNumbNeighbors(); neighbor++) {
-		neighbor_site = atom_list[site].neighbors[neighbor];
-		neighbor_phase = atom_list[site].getNeighborPhase(neighbor, atom_list);
+	for (int neighbor = 0; neighbor < 8; neighbor++) {
+		neighbor_site = atom_list[site].getNeighbor(1, neighbor, atom_list);
+		neighbor_phase = atom_list[site].getNeighborPhase(1, neighbor, atom_list);
 		//pair_calcJK(site, neighbor_site, atom_list, J_K);
-		J_K[0] = (atom_list[site].J + atom_list[neighbor_site].J) / 2 / atom_list[site].getNumbNeighbors();
-		J_K[1] = (atom_list[site].K + atom_list[neighbor_site].K) / 2 / atom_list[site].getNumbNeighbors();
+		J_K[0] = (atom_list[site].J + atom_list[neighbor_site].J) / 2 / 8;
+		J_K[1] = (atom_list[site].K + atom_list[neighbor_site].K) / 2 / 8;
 		sig1 = 1 - pow(site_phase, 2);
 		sig2 = 1 - pow(neighbor_phase, 2);
 		site_energy += J_K[0] * site_phase*neighbor_phase + J_K[1] * sig1*sig2;
