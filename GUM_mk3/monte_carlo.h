@@ -11,6 +11,7 @@
 #include <sstream>
 #include "rule.h"
 #include "atom.h"
+#include "cluster.h"
 
 using namespace std;
 
@@ -33,7 +34,7 @@ float evalLattice(float temp, vector<Atom> &atom_list, vector<Rule> &cluster_rul
 float evalSiteEnergy5(float temp, int site, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules);
 float evalSiteEnergy6(float temp, int site, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules, vector<float> &J_K);
 void eval_flip(float temp, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules, int site, int new_state[3], vector<float> &flip_enrgs);
-void growCluster(int site, float temp, int seed_phase, int new_phase, vector<int> &links, vector<int> &cluster, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules);
+bool growCluster(int depth, int site, float temp, int seed_phase, int new_phase, vector<int> &cluster, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules);
 void flipCluster(int seed_phase, int new_phase, vector<Atom> &atom_list, vector<int> &cluster);
 float evalCluster(vector<Atom> &atom_list, vector<int> &cluster, vector<Rule> &cluster_rules, vector<Rule> &spin_rules, vector<float> &J_K, float temp);
 void runMetropolis1(float passes, float temp1, float temp2, float temp_inc, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules);

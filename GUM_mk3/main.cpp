@@ -18,7 +18,8 @@ int main(void) {
 	cout << "Testing" << '\n';
 	fillRuleList(spin_rules, "SPIN_RULES.txt", "FIT.txt",cluster_rules.size());
 	cout << "begining MC" << '\n';
-	runMetropolis7(100,1,2010,1, atom_list, cluster_rules, spin_rules);
+	runMetropolis3(100, 100, 1, 500, 1, atom_list, cluster_rules, spin_rules);
+	//runMetropolis4(1000,1,2010,100, atom_list, cluster_rules, spin_rules);
 	int exit;
 	std::cin >> exit;
 }
