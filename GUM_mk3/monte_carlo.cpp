@@ -1202,7 +1202,7 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 	int flip_count2 = 0;
 	float phase_avg_abs = 0;
 	float phase_total_abs = 0;
-	vector<int> cluster;
+	Cluster cluster;
 	float rand;
 	float H_cluster_old;
 	float H_cluster_new;
@@ -1345,7 +1345,7 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 	}
 }
 
-bool growCluster(int site, float temp, int seed_phase, int new_phase, vector<> &cluster, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules) {
+void growCluster(int site, float temp, int seed_phase, int new_phase, Cluster &cluster, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules) {
 	vector<float> J_K = { 0,0 };
 	float Kb = .000086173324;
 	float B = 1 / (Kb*temp);
@@ -1367,12 +1367,12 @@ bool growCluster(int site, float temp, int seed_phase, int new_phase, vector<> &
 		for (int neighbor = 0; neighbor < 8; neighbor++) {
 			if (atom_list[site].getNeighborPhase(1, neighbor, atom_list) == seed_phase) {
 				proposed_link = atom_list[site].getNeighbor(1, neighbor, atom_list);
-				if (std::find(cluster.begin(), cluster.end(), proposed_link) == cluster.end()) {
+				if (cluster.inList(proposed_link)) {
 					rand = unif(rng);
 					prob = 1 - exp(-2 * BEG_K);
 					if (rand <= prob) {
-						new_site = atom_list[site].getNeighbor(1,neighbor,atom_list);
-						cluster.push_back(site);
+						new_site = proposed_link;
+						cluster.cluster_list.push_back(new_site);
 						growCluster(new_site, temp, seed_phase, new_phase, cluster, atom_list, cluster_rules, spin_rules);
 					}
 				}
@@ -1383,14 +1383,14 @@ bool growCluster(int site, float temp, int seed_phase, int new_phase, vector<> &
 	if ((seed_phase == 1 and new_phase == 0) or (seed_phase == 0 and new_phase == -1)) {
 		for (int neighbor = 0; neighbor < 8; neighbor++) {
 			proposed_link = atom_list[site].getNeighbor(1, neighbor, atom_list);
-			if (std::find(cluster.begin(), cluster.end(), proposed_link) == cluster.end()) {
+			if (cluster.inList(proposed_link)==false) {
 				if (atom_list[site].getNeighborPhase(1, neighbor, atom_list) == 1 or atom_list[site].getNeighborPhase(1, neighbor, atom_list) == 0) {
 					if (atom_list[site].getNeighborPhase(1, neighbor, atom_list) == site_phase) {
 						rand = unif(rng);
 						prob = 1 - exp(-BEG_K - BEG_M / 3);
 						if (rand < prob) {
-							new_site = atom_list[site].getNeighbor(1, neighbor, atom_list);
-							cluster.push_back(site);
+							new_site = proposed_link;
+							cluster.cluster_list.push_back(new_site);
 							growCluster(new_site, temp, seed_phase, new_phase, cluster, atom_list, cluster_rules, spin_rules);
 						}
 					}
@@ -1398,8 +1398,8 @@ bool growCluster(int site, float temp, int seed_phase, int new_phase, vector<> &
 						rand = unif(rng);
 						prob = 1 - exp(-BEG_K + BEG_M / 3);
 						if (rand < prob) {
-							new_site = atom_list[site].getNeighbor(1, neighbor, atom_list);
-							cluster.push_back(site);
+							new_site = proposed_link;
+							cluster.cluster_list.push_back(new_site);
 							growCluster(new_site, temp, seed_phase, new_phase, cluster, atom_list, cluster_rules, spin_rules);
 						}
 					}
@@ -1410,14 +1410,14 @@ bool growCluster(int site, float temp, int seed_phase, int new_phase, vector<> &
 	if ((seed_phase == -1 and new_phase == 0) or (seed_phase == 0 and new_phase == 0, 1)) {
 		for (int neighbor = 0; neighbor < 8; neighbor++) {
 			proposed_link = atom_list[site].getNeighbor(1, neighbor, atom_list);
-			if (std::find(cluster.begin(), cluster.end(), proposed_link) == cluster.end()) {
+			if (cluster.inList(proposed_link)==false) {
 				if (atom_list[site].getNeighborPhase(1, neighbor, atom_list) == -1 or atom_list[site].getNeighborPhase(1, neighbor, atom_list) == 0) {
 					if (atom_list[site].getNeighborPhase(1, neighbor, atom_list) == site_phase) {
 						rand = unif(rng);
 						prob = 1 - exp(-BEG_K - BEG_M / 3);
 						if (rand < prob) {
-							new_site = atom_list[site].getNeighbor(1, neighbor, atom_list);
-							cluster.push_back(site);
+							new_site = proposed_link;
+							cluster.cluster_list.push_back(new_site);
 							growCluster(new_site, temp, seed_phase, new_phase, cluster, atom_list, cluster_rules, spin_rules);
 						}
 					}
@@ -1425,8 +1425,8 @@ bool growCluster(int site, float temp, int seed_phase, int new_phase, vector<> &
 						rand = unif(rng);
 						prob = 1 - exp(-BEG_K + BEG_M / 3);
 						if (rand < prob) {
-							new_site = atom_list[site].getNeighbor(1, neighbor, atom_list);
-							cluster.push_back(site);
+							new_site = proposed_link;
+							cluster.cluster_list.push_back(new_site);
 							growCluster(new_site, temp, seed_phase, new_phase, cluster, atom_list, cluster_rules, spin_rules);
 						}
 					}
@@ -1436,7 +1436,7 @@ bool growCluster(int site, float temp, int seed_phase, int new_phase, vector<> &
 	}
 }
 
-float evalCluster(vector<Atom> &atom_list, vector<int> &cluster, vector<Rule> &cluster_rules, vector<Rule> &spin_rules, vector<float> &J_K, float temp) {
+float evalCluster(vector<Atom> &atom_list, Cluster &cluster, vector<Rule> &cluster_rules, vector<Rule> &spin_rules, vector<float> &J_K, float temp) {
 	float Kb = .000086173324;
 	float total_H = 0;
 	int site;
@@ -1445,20 +1445,20 @@ float evalCluster(vector<Atom> &atom_list, vector<int> &cluster, vector<Rule> &c
 	int site_phase;
 	int neighbor_phase;
 	int proposed_link = 0;
-	if (cluster.size() == 1) {
-		site = cluster[0];
+	if (cluster.clusterSize() == 1) {
+		site = cluster.cluster_list[0];
 		total_H = evalSiteEnergy3(temp, site, atom_list, cluster_rules, spin_rules, J_K);
 	}
 	else {
-		for (int i = 0; i < cluster.size(); i++) {
-			site = cluster[i];
+		for (int i = 0; i < cluster.clusterSize(); i++) {
+			site = cluster.cluster_list[i];
 			site_phase = atom_list[site].getPhase();
 			clacBEGParams(site, atom_list, cluster_rules, spin_rules, J_K);
 			total_H_inc = 0;
 			inc_count = 0;
 			for (int neighbor = 0; neighbor < 8; neighbor++) {
 				proposed_link = atom_list[site].getNeighbor(1, neighbor, atom_list);
-				if (std::find(cluster.begin(), cluster.end(), proposed_link) == cluster.end()) {
+				if (cluster.inList(proposed_link)) {
 					neighbor_phase = atom_list[site].getNeighborPhase(1, neighbor, atom_list);
 					total_H_inc += J_K[0] * site_phase*neighbor_phase + J_K[1] * (1 - pow(site_phase, 2))*(1 - pow(neighbor_phase, 2));
 					inc_count += 1;
@@ -1470,18 +1470,18 @@ float evalCluster(vector<Atom> &atom_list, vector<int> &cluster, vector<Rule> &c
 	return total_H;
 }
 
-void flipCluster(int seed_phase, int new_phase, vector<Atom> &atom_list, vector<int> &cluster) {
+void flipCluster(int seed_phase, int new_phase, vector<Atom> &atom_list, Cluster &cluster) {
 	int site;
 	int old_phase;
 	if (seed_phase*new_phase == -1) {
-		for (int i = 0; i < cluster.size(); i++) {
-			site = cluster[i];
+		for (int i = 0; i < cluster.clusterSize(); i++) {
+			site = cluster.cluster_list[i];
 			atom_list[site].setPhase(new_phase);
 		}
 	}
 	else {
-		for (int i = 0; i <= cluster.size(); i++) {
-			site = cluster[i];
+		for (int i = 0; i <= cluster.clusterSize(); i++) {
+			site = cluster.cluster_list[i];
 			if ((seed_phase == 1 and new_phase == 0) or (seed_phase == 0 and new_phase == -1)) {
 				old_phase = atom_list[site].getPhase();
 				if (old_phase == 1) {

@@ -116,6 +116,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="atom.cpp" />
+    <ClCompile Include="cluster.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="monte_carlo.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
@@ -124,6 +125,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="atom.h" />
+    <ClInclude Include="cluster.h" />
     <ClInclude Include="monte_carlo.h" />
     <ClInclude Include="rule.h" />
   </ItemGroup>
