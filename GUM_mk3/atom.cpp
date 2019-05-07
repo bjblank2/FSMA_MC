@@ -7,6 +7,7 @@ Atom::Atom(void) {
 	index = 10;
 	J = 0;
 	K = 0;
+	cluster_status = "unknown";
 }
 
 Atom::Atom(int _index, int _species, int _spin, int _phase, int _pos[3]) {
@@ -19,6 +20,15 @@ Atom::Atom(int _index, int _species, int _spin, int _phase, int _pos[3]) {
 	pos[2] = _pos[2];
 	J = 0;
 	K = 0;
+	cluster_status = "unknown";
+}
+
+void Atom::setClusterStatus(string status) {
+	cluster_status = status;
+}
+
+string Atom::getClusterStatus() {
+	return cluster_status;
 }
 
 void Atom::setNeighbor(int _order, string _plain, int _index) {

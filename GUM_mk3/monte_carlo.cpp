@@ -1316,11 +1316,14 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 			else { phase_same = false; }
 		}
 		cout << "\entering cluster algorythm";
-		growCluster(seed_site, temp, seed_phase, new_phase, cluster, atom_list, cluster_rules, spin_rules);
 		if (seed_phase*new_phase == -1) {
+			cluster.plant_cluster(seed_site,atom_list);
+			cluster.growClusterWolff(temp, atom_list);
 			flipCluster(seed_phase, new_phase, atom_list, cluster);
 		}
 		else {
+			cluster.plant_cluster(seed_site,atom_list);
+			cluster.growClusterMixed(temp, new_phase, atom_list);
 			H_cluster_old = evalCluster(atom_list, cluster, cluster_rules, spin_rules, J_K, temp);
 			flipCluster(seed_phase, new_phase, atom_list, cluster);
 			H_cluster_new = evalCluster(atom_list, cluster, cluster_rules, spin_rules, J_K, temp);
@@ -1345,96 +1348,96 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 	}
 }
 
-void growCluster(int site, float temp, int seed_phase, int new_phase, Cluster &cluster, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules) {
-	vector<float> J_K = { 0,0 };
-	float Kb = .000086173324;
-	float B = 1 / (Kb*temp);
-	int site_phase = atom_list[site].getPhase();
-	int proposed_link;
-	int new_site;
-	clacBEGParams(site, atom_list, cluster_rules, spin_rules, J_K);
-	float BEG_K = -2 * B*J_K[0];
-	float BEG_M = -2 * B*J_K[1];
-	float rand;
-	float prob;
-	std::mt19937_64 rng;
-	uint64_t timeSeed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-	std::seed_seq ss{ uint32_t(timeSeed & 0xffffffff), uint32_t(timeSeed >> 32) };
-	rng.seed(ss);
-	std::uniform_real_distribution<double> unif(0, 1);
-	// // Wolff Algorithm
-	if (new_phase*seed_phase == -1) {
-		for (int neighbor = 0; neighbor < 8; neighbor++) {
-			if (atom_list[site].getNeighborPhase(1, neighbor, atom_list) == seed_phase) {
-				proposed_link = atom_list[site].getNeighbor(1, neighbor, atom_list);
-				if (cluster.inList(proposed_link)) {
-					rand = unif(rng);
-					prob = 1 - exp(-2 * BEG_K);
-					if (rand <= prob) {
-						new_site = proposed_link;
-						cluster.cluster_list.push_back(new_site);
-						growCluster(new_site, temp, seed_phase, new_phase, cluster, atom_list, cluster_rules, spin_rules);
-					}
-				}
-			}
-		}
-	}
-	// // Mixed Cluster Algorithm
-	if ((seed_phase == 1 and new_phase == 0) or (seed_phase == 0 and new_phase == -1)) {
-		for (int neighbor = 0; neighbor < 8; neighbor++) {
-			proposed_link = atom_list[site].getNeighbor(1, neighbor, atom_list);
-			if (cluster.inList(proposed_link)==false) {
-				if (atom_list[site].getNeighborPhase(1, neighbor, atom_list) == 1 or atom_list[site].getNeighborPhase(1, neighbor, atom_list) == 0) {
-					if (atom_list[site].getNeighborPhase(1, neighbor, atom_list) == site_phase) {
-						rand = unif(rng);
-						prob = 1 - exp(-BEG_K - BEG_M / 3);
-						if (rand < prob) {
-							new_site = proposed_link;
-							cluster.cluster_list.push_back(new_site);
-							growCluster(new_site, temp, seed_phase, new_phase, cluster, atom_list, cluster_rules, spin_rules);
-						}
-					}
-					else {
-						rand = unif(rng);
-						prob = 1 - exp(-BEG_K + BEG_M / 3);
-						if (rand < prob) {
-							new_site = proposed_link;
-							cluster.cluster_list.push_back(new_site);
-							growCluster(new_site, temp, seed_phase, new_phase, cluster, atom_list, cluster_rules, spin_rules);
-						}
-					}
-				}
-			}
-		}
-	}
-	if ((seed_phase == -1 and new_phase == 0) or (seed_phase == 0 and new_phase == 0, 1)) {
-		for (int neighbor = 0; neighbor < 8; neighbor++) {
-			proposed_link = atom_list[site].getNeighbor(1, neighbor, atom_list);
-			if (cluster.inList(proposed_link)==false) {
-				if (atom_list[site].getNeighborPhase(1, neighbor, atom_list) == -1 or atom_list[site].getNeighborPhase(1, neighbor, atom_list) == 0) {
-					if (atom_list[site].getNeighborPhase(1, neighbor, atom_list) == site_phase) {
-						rand = unif(rng);
-						prob = 1 - exp(-BEG_K - BEG_M / 3);
-						if (rand < prob) {
-							new_site = proposed_link;
-							cluster.cluster_list.push_back(new_site);
-							growCluster(new_site, temp, seed_phase, new_phase, cluster, atom_list, cluster_rules, spin_rules);
-						}
-					}
-					else {
-						rand = unif(rng);
-						prob = 1 - exp(-BEG_K + BEG_M / 3);
-						if (rand < prob) {
-							new_site = proposed_link;
-							cluster.cluster_list.push_back(new_site);
-							growCluster(new_site, temp, seed_phase, new_phase, cluster, atom_list, cluster_rules, spin_rules);
-						}
-					}
-				}
-			}
-		}
-	}
-}
+//void growCluster(int site, float temp, int seed_phase, int new_phase, Cluster &cluster, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules) {
+//	vector<float> J_K = { 0,0 };
+//	float Kb = .000086173324;
+//	float B = 1 / (Kb*temp);
+//	int site_phase = atom_list[site].getPhase();
+//	int proposed_link;
+//	int new_site;
+//	clacBEGParams(site, atom_list, cluster_rules, spin_rules, J_K);
+//	float BEG_K = -2 * B*J_K[0];
+//	float BEG_M = -2 * B*J_K[1];
+//	float rand;
+//	float prob;
+//	std::mt19937_64 rng;
+//	uint64_t timeSeed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+//	std::seed_seq ss{ uint32_t(timeSeed & 0xffffffff), uint32_t(timeSeed >> 32) };
+//	rng.seed(ss);
+//	std::uniform_real_distribution<double> unif(0, 1);
+//	// // Wolff Algorithm
+//	if (new_phase*seed_phase == -1) {
+//		for (int neighbor = 0; neighbor < 8; neighbor++) {
+//			if (atom_list[site].getNeighborPhase(1, neighbor, atom_list) == seed_phase) {
+//				proposed_link = atom_list[site].getNeighbor(1, neighbor, atom_list);
+//				if (cluster.inList(proposed_link)) {
+//					rand = unif(rng);
+//					prob = 1 - exp(-2 * BEG_K);
+//					if (rand <= prob) {
+//						new_site = proposed_link;
+//						cluster.cluster_list.push_back(new_site);
+//						growCluster(new_site, temp, seed_phase, new_phase, cluster, atom_list, cluster_rules, spin_rules);
+//					}
+//				}
+//			}
+//		}
+//	}
+//	// // Mixed Cluster Algorithm
+//	if ((seed_phase == 1 and new_phase == 0) or (seed_phase == 0 and new_phase == -1)) {
+//		for (int neighbor = 0; neighbor < 8; neighbor++) {
+//			proposed_link = atom_list[site].getNeighbor(1, neighbor, atom_list);
+//			if (cluster.inList(proposed_link)==false) {
+//				if (atom_list[site].getNeighborPhase(1, neighbor, atom_list) == 1 or atom_list[site].getNeighborPhase(1, neighbor, atom_list) == 0) {
+//					if (atom_list[site].getNeighborPhase(1, neighbor, atom_list) == site_phase) {
+//						rand = unif(rng);
+//						prob = 1 - exp(-BEG_K - BEG_M / 3);
+//						if (rand < prob) {
+//							new_site = proposed_link;
+//							cluster.cluster_list.push_back(new_site);
+//							growCluster(new_site, temp, seed_phase, new_phase, cluster, atom_list, cluster_rules, spin_rules);
+//						}
+//					}
+//					else {
+//						rand = unif(rng);
+//						prob = 1 - exp(-BEG_K + BEG_M / 3);
+//						if (rand < prob) {
+//							new_site = proposed_link;
+//							cluster.cluster_list.push_back(new_site);
+//							growCluster(new_site, temp, seed_phase, new_phase, cluster, atom_list, cluster_rules, spin_rules);
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
+//	if ((seed_phase == -1 and new_phase == 0) or (seed_phase == 0 and new_phase == 0, 1)) {
+//		for (int neighbor = 0; neighbor < 8; neighbor++) {
+//			proposed_link = atom_list[site].getNeighbor(1, neighbor, atom_list);
+//			if (cluster.inList(proposed_link)==false) {
+//				if (atom_list[site].getNeighborPhase(1, neighbor, atom_list) == -1 or atom_list[site].getNeighborPhase(1, neighbor, atom_list) == 0) {
+//					if (atom_list[site].getNeighborPhase(1, neighbor, atom_list) == site_phase) {
+//						rand = unif(rng);
+//						prob = 1 - exp(-BEG_K - BEG_M / 3);
+//						if (rand < prob) {
+//							new_site = proposed_link;
+//							cluster.cluster_list.push_back(new_site);
+//							growCluster(new_site, temp, seed_phase, new_phase, cluster, atom_list, cluster_rules, spin_rules);
+//						}
+//					}
+//					else {
+//						rand = unif(rng);
+//						prob = 1 - exp(-BEG_K + BEG_M / 3);
+//						if (rand < prob) {
+//							new_site = proposed_link;
+//							cluster.cluster_list.push_back(new_site);
+//							growCluster(new_site, temp, seed_phase, new_phase, cluster, atom_list, cluster_rules, spin_rules);
+//						}
+//					}
+//				}
+//			}
+//		}
+//	}
+//}
 
 float evalCluster(vector<Atom> &atom_list, Cluster &cluster, vector<Rule> &cluster_rules, vector<Rule> &spin_rules, vector<float> &J_K, float temp) {
 	float Kb = .000086173324;

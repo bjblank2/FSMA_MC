@@ -18,7 +18,7 @@ private:
 	int species;
 	int spin;
 	int phase;
-
+	string cluster_status;
 public:
 	vector<int> neighbors_1;
 	vector<int> neighbors;
@@ -29,6 +29,8 @@ public:
 	Atom(void);
 	Atom(int _index, int _species, int _spin, int _phase, int _pos[3]);
 	void setNeighbor(int _order, string _plain, int _index);
+	void setClusterStatus(string status);
+	string getClusterStatus();
 	void setSpin(int _spin);
 	void setSpecies(int _species);
 	void setPhase(int _phase);
