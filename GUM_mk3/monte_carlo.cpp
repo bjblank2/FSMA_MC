@@ -1218,10 +1218,11 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 	std::uniform_real_distribution<double> unif(0, 1);
 	std::random_device rd;     // only used once to initialise (seed) engine
 	std::mt19937 rng_i(rd());    // random-number engine used (Mersenne-Twister in this case)
-	std::uniform_int_distribution<int> uni(0, atom_list.size()); // guaranteed unbiased
+	std::uniform_int_distribution<int> uni(0, atom_list.size() - 1); // guaranteed unbiased
 	cout << evalLattice(temp1, atom_list, cluster_rules, spin_rules, J_K);
 	cout << "\n";
 	for (float temp = temp1; temp < temp2; temp += temp_inc) {
+		cout << "\n" << temp << "\n";
 		e_avg = 0;
 		phase_avg = 0;
 		phase_avg_abs = 0;
@@ -1231,11 +1232,12 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 		pass_avg_K = 0;
 		flip_count = 0;
 		flip_count2 = 0;
+		cout << "starting spin flips";
+		cout << "\n";
 		for (int i = 0; i < spin_passes; i++) {
 			e_total = 0;
 			phase_total = 0;
 			phase_total_abs = 0;
-
 			spin_total = 0;
 			spin_total2 = 0;
 			atom_avg_J = 0;
@@ -1296,13 +1298,12 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 			pass_avg_J += atom_avg_J;
 			pass_avg_K += atom_avg_K;
 		}
-		
 		seed_site = uni(rng_i);
 		seed_phase = atom_list[seed_site].getPhase();
-		phase_rand = unif(rng);
 		phase_same = true;
 		while (phase_same == true)
 		{
+			phase_rand = unif(rng);
 			if (phase_rand <= 0.3333333333333333) {
 				new_phase = -1;
 			}
@@ -1312,32 +1313,35 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 			else {
 				new_phase = 1;
 			}
-			if (new_phase == seed_phase) { phase_same = true; }
-			else { phase_same = false; }
+			if (new_phase != seed_phase) { phase_same = false; }
 		}
-		cout << "\entering cluster algorythm";
+		cout << "\entering cluster algorythm \n";
 		if (seed_phase*new_phase == -1) {
+			cout << "running wolff algorythm \n cluster will be accepted \n";
 			cluster.plant_cluster(seed_site,atom_list);
 			cluster.growClusterWolff(temp, atom_list);
 			flipCluster(seed_phase, new_phase, atom_list, cluster);
 		}
 		else {
+			cout << "running mixed cluster algorythm \n";
 			cluster.plant_cluster(seed_site,atom_list);
 			cluster.growClusterMixed(temp, new_phase, atom_list);
+			cout << "cluster grown, size = " << cluster.clusterSize() << "\n";
 			H_cluster_old = evalCluster(atom_list, cluster, cluster_rules, spin_rules, J_K, temp);
+			cout << H_cluster_old << "\n";
 			flipCluster(seed_phase, new_phase, atom_list, cluster);
 			H_cluster_new = evalCluster(atom_list, cluster, cluster_rules, spin_rules, J_K, temp);
 			if (H_cluster_new <= H_cluster_old) {
-				cout << "\accepting MC cluster flip: new energy < old energy";
+				cout << "accepting MC cluster flip: new energy < old energy \n";
 			}
 			else {
 				rand = unif(rng);
 				prob = exp(-1 / (Kb*temp)*(H_cluster_new - H_cluster_old));
 				if (rand < prob) {
-					cout << "\accepting MC cluster flip";
+					cout << "accepting MC cluster flip \n";
 				}
 				else {
-					cout << "rejecting MC cluster flip";
+					cout << "rejecting MC cluster flip \n";
 					flipCluster(new_phase, seed_phase, atom_list, cluster);
 				}
 			}
@@ -1483,7 +1487,7 @@ void flipCluster(int seed_phase, int new_phase, vector<Atom> &atom_list, Cluster
 		}
 	}
 	else {
-		for (int i = 0; i <= cluster.clusterSize(); i++) {
+		for (int i = 0; i < cluster.clusterSize(); i++) {
 			site = cluster.cluster_list[i];
 			if ((seed_phase == 1 and new_phase == 0) or (seed_phase == 0 and new_phase == -1)) {
 				old_phase = atom_list[site].getPhase();
@@ -1962,10 +1966,6 @@ void runMetropolis5(float passes, float temp1, float temp2, float temp_inc, vect
 				eval_flip(temp, atom_list, cluster_rules, spin_rules, site, new_state, flip_enrgs);
 				e_site_old = float(flip_enrgs[0]);
 				e_site_new = float(flip_enrgs[1]);
-				/*cout << e_site_old;
-				cout << ' ';
-				cout << e_site_new;
-				cout << " : ";*/
 				check_phase = atom_list[site].getPhase();
 				check_spin = atom_list[site].getSpin();
 				check_species = atom_list[site].getSpecies();
@@ -1993,10 +1993,6 @@ void runMetropolis5(float passes, float temp1, float temp2, float temp_inc, vect
 						e_total += e_site_old;
 					}
 				}
-				/*cout << e_site_old;
-				cout << ' ';
-				cout << e_site_new;
-				cout << "\n";*/
  				current_phase = atom_list[site].getPhase();
 				phase_total += current_phase;
 				phase_total_abs += abs(current_phase);

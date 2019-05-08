@@ -15,7 +15,10 @@ private:
 	vector<int> branch;
 	vector<int> root;
 	int seed;
+	int new_phase;
 public:
+	void setNewPhase(int phase);
+	int getNewPhase();
 	void plant_cluster(int _seed, vector<Atom> atom_list);
 	vector<int> cluster_list;
 	bool continue_growth;
@@ -24,7 +27,7 @@ public:
 	bool inList(int site);
 	int clusterSize();
 	void growClusterWolff(float temp, vector<Atom> atom_list);
-	void growClusterMixed(float temp, int new_phase, vector<Atom> atom_list);
+	void growClusterMixed(float temp, int _new_phase, vector<Atom> atom_list);
 	void setSiteStatus(int site, string status, vector<Atom> atom_list);
 	string getSiteStatus(int site, vector<Atom> atom_list);
 };

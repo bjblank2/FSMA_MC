@@ -12,9 +12,17 @@ Cluster::Cluster(int _seed, vector<int> &_cluster_list) {
 	cluster_list = _cluster_list;
 }
 
+void Cluster::setNewPhase(int phase) {
+	new_phase = phase;
+}
+
+int Cluster::getNewPhase() {
+	return new_phase;
+}
+
 void Cluster::plant_cluster(int _seed, vector<Atom> atom_list) {
 	for (int i = 0; i < atom_list.size(); i++) {
-		atom_list[i].setClusterStatus("unknown");
+		setSiteStatus(i, "unknown", atom_list);
 	}
 	seed = _seed;
 	setSiteStatus(seed, "seed", atom_list);
@@ -74,6 +82,10 @@ void Cluster::growClusterWolff(float temp, vector<Atom> atom_list) {
 				if (neighbor >= 8) {
 					root.pop_back();
 					neighbor = 0;
+					if (root.size() == 0) {
+						continue_growth = false;
+						root.push_back(seed);
+					}
 				}
 			}
 			else {
@@ -93,7 +105,10 @@ void Cluster::growClusterWolff(float temp, vector<Atom> atom_list) {
 					if (neighbor >= 8) {
 						root.pop_back();
 						neighbor = 0;
-						if (root.size() == 0) { continue_growth = false; }
+						if (root.size() == 0) { 
+							continue_growth = false;
+							root.push_back(seed);
+						}
 					}
 				}
 			}
@@ -101,7 +116,7 @@ void Cluster::growClusterWolff(float temp, vector<Atom> atom_list) {
 	}
 }
 
-void Cluster::growClusterMixed(float temp, int new_phase, vector<Atom> atom_list) {
+void Cluster::growClusterMixed(float temp, int _new_phase, vector<Atom> atom_list) {
 	float Kb = .000086173324;
 	float B = 1 / (Kb*temp);
 	float rand;
@@ -113,12 +128,14 @@ void Cluster::growClusterMixed(float temp, int new_phase, vector<Atom> atom_list
 	float root_K;
 	float link_J;
 	float link_K;
+	float seed_phase = atom_list[seed].getPhase();
+	setNewPhase(_new_phase);
 	std::mt19937_64 rng;
 	uint64_t timeSeed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
 	std::seed_seq ss{ uint32_t(timeSeed & 0xffffffff), uint32_t(timeSeed >> 32) };
 	rng.seed(ss);
 	std::uniform_real_distribution<double> unif(0, 1);
-	if ((atom_list[seed].getPhase() == 1 and new_phase == 0) or (atom_list[seed].getPhase() == 0 and new_phase == -1)) {
+	if ((seed_phase == 1 and getNewPhase() == 0) or (seed_phase == 0 and getNewPhase() == -1)) {
 		while (continue_growth == true) {
 			root_J = atom_list[root.back()].J;
 			root_K = atom_list[root.back()].K;
@@ -143,7 +160,10 @@ void Cluster::growClusterMixed(float temp, int new_phase, vector<Atom> atom_list
 							if (neighbor >= 8) {
 								root.pop_back();
 								neighbor = 0;
-								if (root.size() == 0) { continue_growth = false; }
+								if (root.size() == 0) {
+									continue_growth = false;
+									root.push_back(seed);
+								}
 							}
 						}
 					}
@@ -165,7 +185,10 @@ void Cluster::growClusterMixed(float temp, int new_phase, vector<Atom> atom_list
 							if (neighbor >= 8) {
 								root.pop_back();
 								neighbor = 0;
-								if (root.size() == 0) { continue_growth = false; }
+								if (root.size() == 0) {
+									continue_growth = false;
+									root.push_back(seed);
+								}
 							}
 						}
 					}
@@ -176,7 +199,10 @@ void Cluster::growClusterMixed(float temp, int new_phase, vector<Atom> atom_list
 					if (neighbor >= 8) {
 						root.pop_back();
 						neighbor = 0;
-						if (root.size() == 0) { continue_growth = false; }
+						if (root.size() == 0) {
+							continue_growth = false;
+							root.push_back(seed);
+						}
 					}
 				}
 			}
