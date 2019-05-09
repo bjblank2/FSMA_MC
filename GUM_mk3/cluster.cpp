@@ -65,15 +65,15 @@ void Cluster::growClusterWolff(float temp, vector<Atom> atom_list) {
 	int neighbor_site;
 	int neighbor = 0;
 	int numb_neighbors = atom_list[root.back()].getNumbNeighbors();
-	float root_K;
-	float link_K;
+	float root_J;
+	float link_J;
 	std::mt19937_64 rng;
 	uint64_t timeSeed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
 	std::seed_seq ss{ uint32_t(timeSeed & 0xffffffff), uint32_t(timeSeed >> 32) };
 	rng.seed(ss);
 	std::uniform_real_distribution<double> unif(0, 1);
 	while (continue_growth == true) {
-		root_K = atom_list[root.back()].K;
+		root_J = atom_list[root.back()].J;
 		neighbor_site = atom_list[root.back()].getNeighbor(1, neighbor, atom_list);
 		if (getSiteStatus(neighbor, atom_list) == "unknown") {
 			if (atom_list[neighbor].getPhase() != atom_list[seed].getPhase()) {
@@ -90,8 +90,8 @@ void Cluster::growClusterWolff(float temp, vector<Atom> atom_list) {
 			}
 			else {
 				rand = unif(rng);
-				link_K = -2 * B * (root_K + atom_list[neighbor_site].K) / 2;
-				prob = 1 - exp(-2 * link_K);
+				link_J = -2 * B * (root_J + atom_list[neighbor_site].J) / 2;
+				prob = 1 - exp(-2 * link_J);
 				if (rand <= prob) {
 					setSiteStatus(neighbor_site, "root", atom_list);
 					root.push_back(neighbor_site);
