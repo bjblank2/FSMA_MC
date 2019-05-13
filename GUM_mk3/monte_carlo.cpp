@@ -865,22 +865,27 @@ float evalSiteEnergy6(float temp, int site, vector<Atom> &atom_list, vector<Rule
 	int neighbor_phase;
 	int neighbor_site;
 	int site_spin = atom_list[site].getSpin();
+	float avg_J;
+	float avg_K;
 	int sig1;
 	int sig2;
-	for (int neighbor = 0; neighbor < 8; neighbor++) {
-		neighbor_site = atom_list[site].getNeighbor(1, neighbor, atom_list);
-		neighbor_phase = atom_list[site].getNeighborPhase(1, neighbor, atom_list);
-		//pair_calcJK(site, neighbor_site, atom_list, J_K);
-		J_K[0] = (atom_list[site].J + atom_list[neighbor_site].J) / 2 / 8;
-		J_K[1] = (atom_list[site].K + atom_list[neighbor_site].K) / 2 / 8;
+	for (int neighbor = 0; neighbor < atom_list[site].getNumbNeighbors(); neighbor++) {
+		//neighbor_site = atom_list[site].getNeighbor(1, neighbor, atom_list);
+		//neighbor_phase = atom_list[site].getNeighborPhase(1, neighbor, atom_list);
+		neighbor_site = atom_list[site].neighbors[neighbor];
+		neighbor_phase = atom_list[neighbor_site].getPhase();
+		avg_J = (atom_list[site].J + atom_list[neighbor_site].J) / 2;
+		avg_K = (atom_list[site].K + atom_list[neighbor_site].K) / 2;
 		sig1 = 1 - pow(site_phase, 2);
 		sig2 = 1 - pow(neighbor_phase, 2);
-		site_energy += J_K[0] * site_phase*neighbor_phase + J_K[1] * sig1*sig2;
+		site_energy += avg_J * site_phase*neighbor_phase + avg_K * sig1*sig2;
 	}
-	//site_energy /= 8; ////////////////////////////////////////////////////////////////////////// AAAAAAAAAAAAAAAHHHHHHHHH !!!!!!!!!! ////////////
+	site_energy /=  atom_list[site].getNumbNeighbors();
 	site_energy -= Kb * temp * log(2)*(1 - pow(site_phase, 2));
 	site_energy -= 3 * uB*H*site_spin;
 	// add mag contribution
+	J_K[0] = avg_J / atom_list[site].getNumbNeighbors();
+	J_K[1] = avg_K / atom_list[site].getNumbNeighbors();
 	return site_energy;
 }
 
@@ -2197,7 +2202,6 @@ void runMetropolis7(float passes, float temp1, float temp2, float temp_inc, vect
 			pass_avg_J = 0;
 			pass_avg_K = 0;
 			for (int site = 0; site < atom_list.size(); site++) {
-				//cout << atom_list[site].getSpecies();
 				// Flip Phase and Spin
 				bool keep = false;
 				/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
