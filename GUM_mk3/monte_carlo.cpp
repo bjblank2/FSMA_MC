@@ -1513,7 +1513,7 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 		init_calcJK(site, atom_list, cluster_rules, spin_rules);
 	}
 	for (float temp = temp1; temp < temp2; temp += temp_inc) {
-		cout << "\n" << temp << "\n";
+		//cout << "\n" << temp << "\n";
 		e_avg = 0;
 		phase_avg = 0;
 		phase_avg_abs = 0;
@@ -1523,8 +1523,7 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 		pass_avg_K = 0;
 		flip_count = 0;
 		flip_count2 = 0;
-		cout << "starting spin flips";
-		cout << "\n";
+		//cout << "starting spin flips \n";
 		for (int i = 0; i < spin_passes; i++) {
 			e_total = 0;
 			phase_total = 0;
@@ -1608,40 +1607,62 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 			}
 			if (new_phase != seed_phase) { phase_same = false; }
 		}
-		cout << "\entering cluster algorythm \n";
+		//cout << "\entering cluster algorythm \n";
 		if (seed_phase*new_phase == -1) {
-			cout << "running wolff algorythm \n cluster will be accepted \n";
+			//cout << "running wolff algorythm \n cluster will be accepted \n";
 			cluster.plant_cluster(seed_site, atom_list);
 			cluster.growClusterWolff(temp, atom_list);
-			cout << "cluster grown, size = " << cluster.clusterSize() << "\n";
+			//cout << "cluster grown, size = " << cluster.clusterSize() << "\n";
 			flipCluster(seed_phase, new_phase, atom_list, cluster);
 		}
 		else {
-			cout << "running mixed cluster algorythm \n";
+			//cout << "running mixed cluster algorythm \n";
 			cluster.plant_cluster(seed_site, atom_list);
 			cluster.growClusterMixed(temp, new_phase, atom_list);
-			cout << "cluster grown, size = " << cluster.clusterSize() << "\n";
+			//cout << "cluster grown, size = " << cluster.clusterSize() << "\n";
 			H_cluster_old = evalCluster(atom_list, cluster, cluster_rules, spin_rules, J_K, temp);
-			cout << H_cluster_old << "\n";
+			//cout << H_cluster_old << "\n";
 			flipCluster(seed_phase, new_phase, atom_list, cluster);
 			H_cluster_new = evalCluster(atom_list, cluster, cluster_rules, spin_rules, J_K, temp);
 			if (H_cluster_new <= H_cluster_old) {
-				cout << "accepting MC cluster flip: new energy < old energy \n";
+				//cout << "accepting MC cluster flip: new energy < old energy \n";
 			}
 			else {
 				rand = unif(rng);
 				prob = exp(-1 / (Kb*temp)*(H_cluster_new - H_cluster_old));
 				if (rand < prob) {
-					cout << "accepting MC cluster flip \n";
+					//cout << "accepting MC cluster flip \n";
 				}
 				else {
-					cout << "rejecting MC cluster flip \n";
+					//cout << "rejecting MC cluster flip \n";
 					flipCluster(new_phase, seed_phase, atom_list, cluster);
 				}
 			}
 		}
+		phase_avg = 0;
+		for (int k = 0; k < numb_atoms; k++) {
+			phase_avg += atom_list[k].getPhase();
+		}
 		e_total = evalLattice(temp, atom_list, cluster_rules, spin_rules, J_K);
-		cout << "\n\nEnergy = " << e_total << "\n";
+		//cout << "\n\nEnergy = " << e_total << "\n";
+		cout << temp;
+		cout << " , ";
+		cout << e_total; // e_avg / passes / numb_atoms * 16;
+		cout << " , ";
+		cout << phase_avg / numb_atoms;// / passes / numb_atoms;
+		cout << " , ";
+		cout << spin_avg / spin_passes / numb_atoms / 6 * 2;
+		cout << " , ";
+		cout << spin_avg2 / spin_passes / numb_atoms;
+		cout << " , ";
+		//cout << pass_avg_J / passes / numb_atoms;
+		//cout << " , ";
+		//cout << pass_avg_K / passes / numb_atoms;
+		//cout << " , ";
+		cout << flip_count;
+		cout << " , ";
+		cout << flip_count2;
+		cout << "\n";
 	}
 }
 
