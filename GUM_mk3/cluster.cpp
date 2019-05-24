@@ -20,7 +20,7 @@ int Cluster::getNewPhase() {
 	return new_phase;
 }
 
-void Cluster::plant_cluster(int _seed, vector<Atom> atom_list) {
+void Cluster::plant_cluster(int _seed, vector<Atom> &atom_list) {
 	for (int i = 0; i < atom_list.size(); i++) {
 		setSiteStatus(i, "unknown", atom_list);
 	}
@@ -34,11 +34,11 @@ void Cluster::plant_cluster(int _seed, vector<Atom> atom_list) {
 	continue_growth = true;
 }
 
-void Cluster::setSiteStatus(int site, string status, vector<Atom> atom_list) {
+void Cluster::setSiteStatus(int site, string status, vector<Atom> &atom_list) {
 	atom_list[site].setClusterStatus(status);
 }
 
-string Cluster::getSiteStatus(int site, vector<Atom> atom_list) {
+string Cluster::getSiteStatus(int site, vector<Atom> &atom_list) {
 	return atom_list[site].getClusterStatus();
 }
 
@@ -57,7 +57,7 @@ int Cluster::clusterSize() {
 	return cluster_list.size();
 }
 
-void Cluster::growClusterWolff(float temp, vector<Atom> atom_list) {
+void Cluster::growClusterWolff(float temp, vector<Atom> &atom_list) {
 	float Kb = .000086173324;
 	float B = 1 / (Kb*temp);
 	float rand;
@@ -75,7 +75,7 @@ void Cluster::growClusterWolff(float temp, vector<Atom> atom_list) {
 	while (continue_growth == true) {
 		root_J = atom_list[root.back()].J;
 		neighbor_site = atom_list[root.back()].getNeighbor(1, neighbor, atom_list);
-		if (getSiteStatus(neighbor, atom_list) == "unknown") {
+		if (getSiteStatus(neighbor_site, atom_list) == "unknown") {
 			if (atom_list[neighbor].getPhase() != atom_list[seed].getPhase()) {
 				setSiteStatus(neighbor_site, "cap", atom_list);
 				neighbor += 1;
@@ -113,10 +113,18 @@ void Cluster::growClusterWolff(float temp, vector<Atom> atom_list) {
 				}
 			}
 		}
+		else {
+			neighbor++;
+			if (neighbor > 8) {
+				neighbor = 0;
+				setSiteStatus(neighbor_site, "cap", atom_list);
+				root.pop_back();
+			}
+		}
 	}
 }
 
-void Cluster::growClusterMixed(float temp, int _new_phase, vector<Atom> atom_list) {
+void Cluster::growClusterMixed(float temp, int _new_phase, vector<Atom> &atom_list) {
 	float Kb = .000086173324;
 	float B = 1 / (Kb*temp);
 	float rand;
@@ -140,7 +148,7 @@ void Cluster::growClusterMixed(float temp, int _new_phase, vector<Atom> atom_lis
 			root_J = atom_list[root.back()].J;
 			root_K = atom_list[root.back()].K;
 			neighbor_site = atom_list[root.back()].getNeighbor(1, neighbor, atom_list);
-			if (getSiteStatus(neighbor, atom_list) == "unknown") {
+			if (getSiteStatus(neighbor_site, atom_list) == "unknown") {
 				if (atom_list[neighbor_site].getPhase() == 1 or atom_list[neighbor_site].getPhase() == 0) {
 					if (atom_list[neighbor_site].getPhase() == atom_list[root.back()].getPhase()) {
 						rand = unif(rng);
@@ -206,6 +214,14 @@ void Cluster::growClusterMixed(float temp, int _new_phase, vector<Atom> atom_lis
 					}
 				}
 			}
+			else { 
+				neighbor++;
+				if (neighbor > 8) {
+					neighbor = 0;
+					setSiteStatus(neighbor_site, "cap", atom_list);
+					root.pop_back();
+				}
+			}
 		}
 	}
 	else if ((seed_phase == -1 and getNewPhase() == 0) or (seed_phase == 0 and getNewPhase() == 1)) {
@@ -213,7 +229,7 @@ void Cluster::growClusterMixed(float temp, int _new_phase, vector<Atom> atom_lis
 			root_J = atom_list[root.back()].J;
 			root_K = atom_list[root.back()].K;
 			neighbor_site = atom_list[root.back()].getNeighbor(1, neighbor, atom_list);
-			if (getSiteStatus(neighbor, atom_list) == "unknown") {
+			if (getSiteStatus(neighbor_site, atom_list) == "unknown") {
 				if (atom_list[neighbor_site].getPhase() == -1 or atom_list[neighbor_site].getPhase() == 0) {
 					if (atom_list[neighbor_site].getPhase() == atom_list[root.back()].getPhase()) {
 						rand = unif(rng);
@@ -277,6 +293,14 @@ void Cluster::growClusterMixed(float temp, int _new_phase, vector<Atom> atom_lis
 							root.push_back(seed);
 						}
 					}
+				}
+			}
+			else {
+				neighbor++;
+				if (neighbor > 8) {
+					neighbor = 0;
+					setSiteStatus(neighbor_site, "cap", atom_list);
+					root.pop_back();
 				}
 			}
 		}

@@ -1593,8 +1593,6 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 			pass_avg_J += atom_avg_J;
 			pass_avg_K += atom_avg_K;
 		}
-		for (int i = 0; i < atom_list.size(); i++) { cout << atom_list[i].getPhase(); }
-
 		for (int clust_pass = 0; clust_pass < 1; clust_pass++) {
 			seed_site = uni(rng_i);
 			seed_phase = atom_list[seed_site].getPhase();
@@ -1618,19 +1616,15 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 				cout << "running wolff algorythm \n cluster will be accepted \n";
 				cluster.plant_cluster(seed_site, atom_list);
 				cluster.growClusterWolff(temp, atom_list);
-				//for (int i = 0; i < cluster.clusterSize(); i++) { cout << atom_list[cluster.cluster_list[i]].getPhase(); }
 				cout << "cluster grown, size = " << cluster.clusterSize() << "\n";
 				flipCluster(seed_phase, new_phase, atom_list, cluster);
-				//for (int i = 0; i < cluster.clusterSize(); i++) { cout << atom_list[cluster.cluster_list[i]].getPhase(); }
 			}
 			else {
 				cout << "running mixed cluster algorythm \n";
 				cluster.plant_cluster(seed_site, atom_list);
 				cluster.growClusterMixed(temp, new_phase, atom_list);
-				//for (int i = 0; i < cluster.clusterSize(); i++) { cout << atom_list[cluster.cluster_list[i]].getPhase(); }
 				cout << "cluster grown, size = " << cluster.clusterSize() << "\n";
 				H_cluster_old = evalCluster(atom_list, cluster, cluster_rules, spin_rules, J_K, temp);
-				//cout << H_cluster_old << "\n";
 				flipCluster(seed_phase, new_phase, atom_list, cluster);
 				H_cluster_new = evalCluster(atom_list, cluster, cluster_rules, spin_rules, J_K, temp);
 				cout << "H_cluster_new " << H_cluster_new << " H_cluster_old " << H_cluster_old << "\n";
@@ -1653,12 +1647,11 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 		}
 		phase_avg = 0;
 		for (int k = 0; k < numb_atoms; k++) { 
-			cout << atom_list[k].getPhase() << " ";
+			//cout << atom_list[k].getPhase() << " ";
 			phase_avg += atom_list[k].getPhase(); 
-			cout << atom_list[k].getPhase() << "\n";
+			//cout << atom_list[k].getPhase() << "\n";
 		}
 		e_total = evalLattice(temp, atom_list, cluster_rules, spin_rules, J_K);
-		//cout << "\n\nEnergy = " << e_total << "\n";
 		cout << temp;
 		cout << " , ";
 		cout << e_total; // e_avg / passes / numb_atoms * 16;
