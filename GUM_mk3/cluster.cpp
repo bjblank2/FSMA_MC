@@ -90,8 +90,8 @@ void Cluster::growClusterWolff(float temp, vector<Atom> atom_list) {
 			}
 			else {
 				rand = unif(rng);
-				link_J = -2 * B * (root_J + atom_list[neighbor_site].J) / 2;
-				prob = 1 - exp(-2 * link_J);
+				link_J = -(root_J + atom_list[neighbor_site].J) / (2);
+				prob = 1 - exp(-2 * B * link_J);
 				if (rand <= prob) {
 					setSiteStatus(neighbor_site, "root", atom_list);
 					root.push_back(neighbor_site);
@@ -144,9 +144,9 @@ void Cluster::growClusterMixed(float temp, int _new_phase, vector<Atom> atom_lis
 				if (atom_list[neighbor_site].getPhase() == 1 or atom_list[neighbor_site].getPhase() == 0) {
 					if (atom_list[neighbor_site].getPhase() == atom_list[root.back()].getPhase()) {
 						rand = unif(rng);
-						link_J = -2 * B * (root_J + atom_list[neighbor_site].J) / 2;
-						link_K = -2 * B * (root_K + atom_list[neighbor_site].K) / 2;
-						prob = 1 - exp(-link_J - link_K / 3);
+						link_J = -(root_J + atom_list[neighbor_site].J) / (2);
+						link_K = -(root_K + atom_list[neighbor_site].K) / (2);
+						prob = 1 - exp(B * (-link_J - link_K / 3));
 						if (rand <= prob) {
 							setSiteStatus(neighbor_site, "root", atom_list);
 							root.push_back(neighbor_site);
@@ -169,9 +169,82 @@ void Cluster::growClusterMixed(float temp, int _new_phase, vector<Atom> atom_lis
 					}
 					else {
 						rand = unif(rng);
-						link_J = -2 * B * (root_J + atom_list[neighbor_site].J) / 2;
-						link_K = -2 * B * (root_K + atom_list[neighbor_site].K) / 2;
-						prob = 1 - exp(-link_J + link_K / 3);
+						link_J = -(root_J + atom_list[neighbor_site].J) / 2;
+						link_K = -(root_K + atom_list[neighbor_site].K) / 2;
+						prob = 1 - exp(B * (-link_J + link_K / 3));
+						if (rand <= prob) {
+							setSiteStatus(neighbor_site, "root", atom_list);
+							root.push_back(neighbor_site);
+							cluster_list.push_back(neighbor_site);
+							neighbor = 0;
+							if (cluster_list.size() >= atom_list.size()) { continue_growth = false; }
+						}
+						else {
+							setSiteStatus(neighbor_site, "cap", atom_list);
+							neighbor += 1;
+							if (neighbor >= 8) {
+								root.pop_back();
+								neighbor = 0;
+								if (root.size() == 0) {
+									continue_growth = false;
+									root.push_back(seed);
+								}
+							}
+						}
+					}
+				}
+				else {
+					setSiteStatus(neighbor_site, "cap", atom_list);
+					neighbor += 1;
+					if (neighbor >= 8) {
+						root.pop_back();
+						neighbor = 0;
+						if (root.size() == 0) {
+							continue_growth = false;
+							root.push_back(seed);
+						}
+					}
+				}
+			}
+		}
+	}
+	else if ((seed_phase == -1 and getNewPhase() == 0) or (seed_phase == 0 and getNewPhase() == 1)) {
+		while (continue_growth == true) {
+			root_J = atom_list[root.back()].J;
+			root_K = atom_list[root.back()].K;
+			neighbor_site = atom_list[root.back()].getNeighbor(1, neighbor, atom_list);
+			if (getSiteStatus(neighbor, atom_list) == "unknown") {
+				if (atom_list[neighbor_site].getPhase() == -1 or atom_list[neighbor_site].getPhase() == 0) {
+					if (atom_list[neighbor_site].getPhase() == atom_list[root.back()].getPhase()) {
+						rand = unif(rng);
+						link_J = -(root_J + atom_list[neighbor_site].J) / (2);
+						link_K = -(root_K + atom_list[neighbor_site].K) / (2);
+						prob = 1 - exp(B * (-link_J - link_K / 3));
+						if (rand <= prob) {
+							setSiteStatus(neighbor_site, "root", atom_list);
+							root.push_back(neighbor_site);
+							cluster_list.push_back(neighbor_site);
+							neighbor = 0;
+							if (cluster_list.size() >= atom_list.size()) { continue_growth = false; }
+						}
+						else {
+							setSiteStatus(neighbor_site, "cap", atom_list);
+							neighbor += 1;
+							if (neighbor >= 8) {
+								root.pop_back();
+								neighbor = 0;
+								if (root.size() == 0) {
+									continue_growth = false;
+									root.push_back(seed);
+								}
+							}
+						}
+					}
+					else {
+						rand = unif(rng);
+						link_J = -(root_J + atom_list[neighbor_site].J) / 2;
+						link_K = -(root_K + atom_list[neighbor_site].K) / 2;
+						prob = 1 - exp(B * (-link_J + link_K / 3));
 						if (rand <= prob) {
 							setSiteStatus(neighbor_site, "root", atom_list);
 							root.push_back(neighbor_site);

@@ -461,8 +461,8 @@ void re_calcJK(int site, int old_home_spin, vector<Atom> &atom_list, vector<Rule
 }
 
 void clacBEGParams(vector<float> &J_K) {
-	J_K[0] = -0.1; //-0.822868 , -0.771559
-	J_K[1] = -0.035;
+	J_K[0] = -0.002; //-0.822868 , -0.771559
+	J_K[1] = -0.026;
 }
 
 void clacBEGParams(int site, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules, vector<float> &J_K) {
@@ -1048,36 +1048,44 @@ float evalCluster(vector<Atom> &atom_list, Cluster &cluster, vector<Rule> &clust
 	return total_H;
 }
 
-void flipCluster(int seed_phase, int new_phase, vector<Atom> &atom_list, Cluster &cluster) {
+void flipCluster(int seed_phase, int new_phase, vector<Atom> &atom_list, Cluster &cluster, bool reset) {
 	int site;
 	int old_phase;
-	if (seed_phase*new_phase == -1) {
-		for (int i = 0; i < cluster.clusterSize(); i++) {
-			site = cluster.cluster_list[i];
-			atom_list[site].setPhase(new_phase);
+	if (reset == false) {
+		if (seed_phase*new_phase == -1) {
+			for (int cluster_site = 0; cluster_site < cluster.clusterSize(); cluster_site++) {
+				site = cluster.cluster_list[cluster_site];
+				atom_list[site].setPhase(new_phase);
+			}
+		}
+		else {
+			for (int cluster_site = 0; cluster_site < cluster.clusterSize(); cluster_site++) {
+				site = cluster.cluster_list[cluster_site];
+				if ((seed_phase == 1 and new_phase == 0) or (seed_phase == 0 and new_phase == -1)) {
+					old_phase = atom_list[site].getPhase();
+					if (old_phase == 1) {
+						atom_list[site].setPhase(0);
+					}
+					else if (old_phase == 0) {
+						atom_list[site].setPhase(-1);
+					}
+					if ((seed_phase == -1 and new_phase == 0) or (seed_phase == 0 and new_phase == 1)) {
+						old_phase = atom_list[site].getPhase();
+						if (old_phase == -1) {
+							atom_list[site].setPhase(0);
+						}
+						else if (old_phase == 0) {
+							atom_list[site].setPhase(1);
+						}
+					}
+				}
+			}
 		}
 	}
 	else {
 		for (int i = 0; i < cluster.clusterSize(); i++) {
 			site = cluster.cluster_list[i];
-			if ((seed_phase == 1 and new_phase == 0) or (seed_phase == 0 and new_phase == -1)) {
-				old_phase = atom_list[site].getPhase();
-				if (old_phase == 1) {
-					atom_list[site].setPhase(0);
-				}
-				else if (old_phase == 0) {
-					atom_list[site].setPhase(-1);
-				}
-				if ((seed_phase == -1 and new_phase == 0) or (seed_phase == 0 and new_phase == 1)) {
-					old_phase = atom_list[site].getPhase();
-					if (old_phase == -1) {
-						atom_list[site].setPhase(0);
-					}
-					else if (old_phase == 0) {
-						atom_list[site].setPhase(1);
-					}
-				}
-			}
+			atom_list[site].setPhase(new_phase);
 		}
 	}
 }
@@ -1149,112 +1157,107 @@ void runMetropolis1(float passes, float temp1, float temp2, float temp_inc, vect
 			for (int site = 0; site < atom_list.size(); site++) {
 				// Flip Phase
 				bool keep = false;
-				////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				e_site_old = evalSiteEnergy3(temp, site, atom_list, cluster_rules, spin_rules, J_K);////////////////////////          //////
-				////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				old_phase = atom_list[site].getPhase();
-				phase_same = true;
-				while (phase_same == true) {
-					phase_rand = unif(rng);
-					if (phase_rand <= 0.3333333333333333) {
-						new_phase = -1;
-					}
-					else if (phase_rand <= 0.6666666666666666) {
-						new_phase = 0;
-					}
-					else {
-						new_phase = 1;
-					}
-					if (new_phase != old_phase) { phase_same = false; }
-				}
-				atom_list[site].setPhase(new_phase);
-				////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				e_site_new = evalSiteEnergy3(temp, site, atom_list, cluster_rules, spin_rules, J_K);////////////////////////         ///////
-				////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				if (e_site_new <= e_site_old) {
-					flip_count2 += 1;
-					keep = true;
-					e_total += e_site_new;
-				}
-				else {
-					keep_rand = unif(rng);
-					keep_prob = exp(-1 / (Kb*temp)*(e_site_new - e_site_old));
-					if (keep_rand <= keep_prob) {
-						keep = true;
-						e_total += e_site_new;
-						flip_count += 1;
-					}
-					else {
-						atom_list[site].setPhase(old_phase);
-						keep = false;
-						e_total += e_site_old;
-					}
-				}
-				current_phase = atom_list[site].getPhase();
-				phase_total += current_phase;
-				phase_total_abs += abs(current_phase);
-
-				atom_avg_J += J_K[0];
-				atom_avg_K += J_K[1];
-				// Flip Spin
-				/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				//e_site_old = evalSiteEnergy3(temp, site, atom_list, cluster_rules, spin_rules, J_K);                   ////////////////
-				/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				//current_J = J_K[0];
-				//current_K = J_K[1];
-				//old_spin = atom_list[site].getSpin();
-				//spin_same = true;
-				//while (spin_same == true) {
-				//	spin_rand = unif(rng);
-				//	if (spin_rand <= 0.3333333333333333) {
-				//		new_spin = -1;
+				//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+				//e_site_old = evalSiteEnergy3(temp, site, atom_list, cluster_rules, spin_rules, J_K);////////////////////////          //////
+				//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+				//old_phase = atom_list[site].getPhase();
+				//phase_same = true;
+				//while (phase_same == true) {
+				//	phase_rand = unif(rng);
+				//	if (phase_rand <= 0.3333333333333333) {
+				//		new_phase = -1;
 				//	}
-				//	else if (spin_rand <= 0.6666666666666666) {
-				//		new_spin = 0;
+				//	else if (phase_rand <= 0.6666666666666666) {
+				//		new_phase = 0;
 				//	}
 				//	else {
-				//		new_spin = 1;
+				//		new_phase = 1;
 				//	}
-				//	if (new_spin != old_spin) { spin_same = false; }
+				//	if (new_phase != old_phase) { phase_same = false; }
 				//}
-				//atom_list[site].setSpin(new_spin);
-				/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				//e_site_new = evalSiteEnergy3(temp, site, atom_list, cluster_rules, spin_rules, J_K);                     //////////////
-				/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				//new_J = J_K[0];
-				//new_K = J_K[1];
+				//atom_list[site].setPhase(new_phase);
+				//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+				//e_site_new = evalSiteEnergy3(temp, site, atom_list, cluster_rules, spin_rules, J_K);////////////////////////         ///////
+				//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 				//if (e_site_new <= e_site_old) {
-				//	e_total += e_site_new;
 				//	flip_count2 += 1;
 				//	keep = true;
-				//	atom_avg_J += new_J;
-				//	atom_avg_K += new_K;
+				//	e_total += e_site_new;
 				//}
 				//else {
 				//	keep_rand = unif(rng);
 				//	keep_prob = exp(-1 / (Kb*temp)*(e_site_new - e_site_old));
-				//	if (keep_rand < keep_prob) {
+				//	if (keep_rand <= keep_prob) {
+				//		keep = true;
 				//		e_total += e_site_new;
 				//		flip_count += 1;
-				//		keep = true;
-				//		atom_avg_J += new_J;
-				//		atom_avg_K += new_K;
 				//	}
 				//	else {
-				//		atom_list[site].setSpin(old_spin);
-				//		e_total += e_site_old;
+				//		atom_list[site].setPhase(old_phase);
 				//		keep = false;
-				//		atom_avg_J += current_J;
-				//		atom_avg_K += current_K;
+				//		e_total += e_site_old;
 				//	}
 				//}
-				//current_spin = atom_list[site].getSpin();
-				//spin_total2 += current_spin;
-				//if (atom_list[site].getSpecies() != 0) {
-				//	for (int neighbors = 0; neighbors < 6; neighbors++) {
-				//		spin_total += atom_list[site].getSpin() * atom_list[site].getNeighborSpin(2, neighbors, atom_list);
-				//	}
-				//}
+				//current_phase = atom_list[site].getPhase();
+				//phase_total += current_phase;
+				//phase_total_abs += abs(current_phase);
+
+				//atom_avg_J += J_K[0];
+				//atom_avg_K += J_K[1];
+
+				// Flip Spin
+				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+				e_site_old = evalSiteISING(temp, site, atom_list, cluster_rules, spin_rules, J_K);                   ////////////////
+				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+				current_J = J_K[0];
+				current_K = J_K[1];
+				old_spin = atom_list[site].getSpin();
+				spin_same = true;
+				while (spin_same == true) {
+					spin_rand = unif(rng);
+					if (spin_rand <= 0.3333333333333333) {
+						new_spin = -1;
+					}
+					else if (spin_rand <= 0.6666666666666666) {
+						new_spin = 0;
+					}
+					else {
+						new_spin = 1;
+					}
+					if (new_spin != old_spin) { spin_same = false; }
+				}
+				atom_list[site].setSpin(new_spin);
+				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+				e_site_new = evalSiteISING(temp, site, atom_list, cluster_rules, spin_rules, J_K);                     //////////////
+				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+				new_J = J_K[0];
+				new_K = J_K[1];
+				if (e_site_new <= e_site_old) {
+					e_total += e_site_new;
+					flip_count2 += 1;
+					keep = true;
+				}
+				else {
+					keep_rand = unif(rng);
+					keep_prob = exp(-1 / (Kb*temp)*(e_site_new - e_site_old));
+					if (keep_rand < keep_prob) {
+						e_total += e_site_new;
+						flip_count += 1;
+						keep = true;
+					}
+					else {
+						atom_list[site].setSpin(old_spin);
+						e_total += e_site_old;
+						keep = false;
+					}
+				}
+				current_spin = atom_list[site].getSpin();
+				spin_total2 += current_spin;
+				if (atom_list[site].getSpecies() != 0) {
+					for (int neighbors = 0; neighbors < 6; neighbors++) {
+						spin_total += atom_list[site].getSpin() * atom_list[site].getNeighborSpin(2, neighbors, atom_list);
+					}
+				}
 			}
 			phase_avg += phase_total;
 			phase_avg_abs += phase_total_abs;
@@ -1590,58 +1593,69 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 			pass_avg_J += atom_avg_J;
 			pass_avg_K += atom_avg_K;
 		}
-		seed_site = uni(rng_i);
-		seed_phase = atom_list[seed_site].getPhase();
-		phase_same = true;
-		while (phase_same == true)
-		{
-			phase_rand = unif(rng);
-			if (phase_rand <= 0.3333333333333333) {
-				new_phase = -1;
-			}
-			else if (phase_rand <= 0.6666666666666666) {
-				new_phase = 0;
-			}
-			else {
-				new_phase = 1;
-			}
-			if (new_phase != seed_phase) { phase_same = false; }
-		}
-		//cout << "\entering cluster algorythm \n";
-		if (seed_phase*new_phase == -1) {
-			//cout << "running wolff algorythm \n cluster will be accepted \n";
-			cluster.plant_cluster(seed_site, atom_list);
-			cluster.growClusterWolff(temp, atom_list);
-			//cout << "cluster grown, size = " << cluster.clusterSize() << "\n";
-			flipCluster(seed_phase, new_phase, atom_list, cluster);
-		}
-		else {
-			//cout << "running mixed cluster algorythm \n";
-			cluster.plant_cluster(seed_site, atom_list);
-			cluster.growClusterMixed(temp, new_phase, atom_list);
-			//cout << "cluster grown, size = " << cluster.clusterSize() << "\n";
-			H_cluster_old = evalCluster(atom_list, cluster, cluster_rules, spin_rules, J_K, temp);
-			//cout << H_cluster_old << "\n";
-			flipCluster(seed_phase, new_phase, atom_list, cluster);
-			H_cluster_new = evalCluster(atom_list, cluster, cluster_rules, spin_rules, J_K, temp);
-			if (H_cluster_new <= H_cluster_old) {
-				//cout << "accepting MC cluster flip: new energy < old energy \n";
-			}
-			else {
-				rand = unif(rng);
-				prob = exp(-1 / (Kb*temp)*(H_cluster_new - H_cluster_old));
-				if (rand < prob) {
-					//cout << "accepting MC cluster flip \n";
+		for (int i = 0; i < atom_list.size(); i++) { cout << atom_list[i].getPhase(); }
+
+		for (int clust_pass = 0; clust_pass < 1; clust_pass++) {
+			seed_site = uni(rng_i);
+			seed_phase = atom_list[seed_site].getPhase();
+			phase_same = true;
+			while (phase_same == true)
+			{
+				phase_rand = unif(rng);
+				if (phase_rand <= 0.3333333333333333) {
+					new_phase = -1;
+				}
+				else if (phase_rand <= 0.6666666666666666) {
+					new_phase = 0;
 				}
 				else {
-					//cout << "rejecting MC cluster flip \n";
-					flipCluster(new_phase, seed_phase, atom_list, cluster);
+					new_phase = 1;
+				}
+				if (new_phase != seed_phase) { phase_same = false; }
+			}
+			cout << "\entering cluster algorythm \n";
+			if (seed_phase*new_phase == -1) {
+				cout << "running wolff algorythm \n cluster will be accepted \n";
+				cluster.plant_cluster(seed_site, atom_list);
+				cluster.growClusterWolff(temp, atom_list);
+				//for (int i = 0; i < cluster.clusterSize(); i++) { cout << atom_list[cluster.cluster_list[i]].getPhase(); }
+				cout << "cluster grown, size = " << cluster.clusterSize() << "\n";
+				flipCluster(seed_phase, new_phase, atom_list, cluster);
+				//for (int i = 0; i < cluster.clusterSize(); i++) { cout << atom_list[cluster.cluster_list[i]].getPhase(); }
+			}
+			else {
+				cout << "running mixed cluster algorythm \n";
+				cluster.plant_cluster(seed_site, atom_list);
+				cluster.growClusterMixed(temp, new_phase, atom_list);
+				//for (int i = 0; i < cluster.clusterSize(); i++) { cout << atom_list[cluster.cluster_list[i]].getPhase(); }
+				cout << "cluster grown, size = " << cluster.clusterSize() << "\n";
+				H_cluster_old = evalCluster(atom_list, cluster, cluster_rules, spin_rules, J_K, temp);
+				//cout << H_cluster_old << "\n";
+				flipCluster(seed_phase, new_phase, atom_list, cluster);
+				H_cluster_new = evalCluster(atom_list, cluster, cluster_rules, spin_rules, J_K, temp);
+				cout << "H_cluster_new " << H_cluster_new << " H_cluster_old " << H_cluster_old << "\n";
+				if (H_cluster_new <= H_cluster_old) {
+					cout << "accepting MC cluster flip: new energy < old energy \n";
+				}
+				else {
+					rand = unif(rng);
+					prob = exp(-1 / (Kb*temp)*(H_cluster_new - H_cluster_old));
+					cout << "Prob " << prob << "\n";
+					if (rand < prob) {
+						cout << "accepting MC cluster flip \n";
+					}
+					else {
+						cout << "rejecting MC cluster flip \n";
+						flipCluster(new_phase, seed_phase, atom_list, cluster, true);
+					}
 				}
 			}
 		}
 		phase_avg = 0;
-		for (int k = 0; k < numb_atoms; k++) {
-			phase_avg += atom_list[k].getPhase();
+		for (int k = 0; k < numb_atoms; k++) { 
+			cout << atom_list[k].getPhase() << " ";
+			phase_avg += atom_list[k].getPhase(); 
+			cout << atom_list[k].getPhase() << "\n";
 		}
 		e_total = evalLattice(temp, atom_list, cluster_rules, spin_rules, J_K);
 		//cout << "\n\nEnergy = " << e_total << "\n";
@@ -1662,7 +1676,7 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 		cout << flip_count;
 		cout << " , ";
 		cout << flip_count2;
-		cout << "\n";
+		cout << "\n\n";
 	}
 }
 
@@ -2325,6 +2339,139 @@ void runMetropolis7(float passes, float temp1, float temp2, float temp_inc, vect
 		cout << pass_avg_J / passes / numb_atoms;
 		cout << " , ";
 		cout << pass_avg_K / passes / numb_atoms;
+		cout << " , ";
+		cout << flip_count;
+		cout << " , ";
+		cout << flip_count2;
+		cout << "\n";
+	}
+}
+
+
+// SPECIAL !!!
+float evalSiteISING(float temp, int site, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules, vector<float> &J_K) {
+	float Kb = 0.000086173324;
+	float uB = .000057883818012;
+	float site_energy = 0;
+	int site_spin = atom_list[site].getSpin();
+	int neighbor_spin;
+	int neighbor_site;
+	clacBEGParams(J_K); // Fixed J-K
+	for (int neighbor = 0; neighbor < 12; neighbor++) {
+		neighbor_site = atom_list[site].getNeighbor(3, neighbor, atom_list);
+		neighbor_spin = atom_list[neighbor_site].getSpin();
+		site_energy += -J_K[0] * (site_spin / 2.0)*(neighbor_spin / 2.0);//+ -J_K[1] * (site_spin/2.0)*(neighbor_spin/2.0);
+	}
+	site_energy /= 12; ////////////////////////////////////////////////////////////////////////// AAAAAAAAAAAAAAAHHHHHHHHH !!!!!!!!!! ////////////
+	return site_energy;
+}
+void runMetropolisISING(float passes, float temp1, float temp2, float temp_inc, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules) {
+	float Kb = .0000861733035;
+	float e_total = 0;
+	float e_site_old = 0;
+	float e_site_new = 0;
+	float spin_rand = 0;
+	float keep_rand = 0;
+	int old_spin = 0;
+	int new_spin = 0;
+	int current_spin = 0;
+	bool spin_same;
+	float e_avg = 0;
+	float spin_avg = 0;
+	float spin_total = 0;
+	float spin_avg2 = 0;
+	float spin_total2 = 0;
+	float keep_prob = 0;
+	int numb_atoms = size(atom_list);
+	int flip_count = 0;
+	int flip_count2 = 0;
+	vector<float> J_K = { 0,0 };
+	std::mt19937_64 rng;
+	uint64_t timeSeed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+	std::seed_seq ss{ uint32_t(timeSeed & 0xffffffff), uint32_t(timeSeed >> 32) };
+	rng.seed(ss);
+	std::uniform_real_distribution<double> unif(0, 1);
+	cout << evalLattice(temp1, atom_list, cluster_rules, spin_rules, J_K);
+	cout << "\n";
+	for (float temp = temp1; temp < temp2; temp += temp_inc) {
+		e_avg = 0;
+		spin_avg = 0;
+		spin_avg2 = 0;
+		flip_count = 0;
+		flip_count2 = 0;
+		for (int i = 0; i < passes; i++) {
+			e_total = 0;
+			spin_total = 0;
+			spin_total2 = 0;
+			for (int site = 0; site < atom_list.size(); site++) {
+				if (atom_list[site].getSpecies() != 0) {
+					bool keep = false;
+					// Flip Spin
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					e_site_old = evalSiteISING(temp, site, atom_list, cluster_rules, spin_rules, J_K);                     ////////////////
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					old_spin = atom_list[site].getSpin();
+					spin_same = true;
+					while (spin_same == true) {
+						spin_rand = unif(rng);
+						if (spin_rand <= 0.5) {
+							new_spin = -1;
+						}
+						else if (spin_rand > 0.5) {
+							new_spin = 1;
+						}
+						if (new_spin != old_spin) { spin_same = false; }
+					}
+					atom_list[site].setSpin(new_spin);
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					e_site_new = evalSiteISING(temp, site, atom_list, cluster_rules, spin_rules, J_K);                     //////////////
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					if (e_site_new <= e_site_old) {
+						e_total += e_site_new;
+						flip_count2 += 1;
+						keep = true;
+					}
+					else {
+						keep_rand = unif(rng);
+						keep_prob = exp(-1 / (Kb*temp)*(e_site_new - e_site_old));
+						if (keep_rand < keep_prob) {
+							e_total += e_site_new;
+							flip_count += 1;
+							keep = true;
+						}
+						else {
+							atom_list[site].setSpin(old_spin);
+							e_total += e_site_old;
+							keep = false;
+						}
+					}
+					current_spin = atom_list[site].getSpin();
+					spin_total2 += current_spin;
+					if (atom_list[site].getSpecies() != 0) {
+						for (int neighbors = 0; neighbors < 12; neighbors++) {
+							if (atom_list[site].getNeighborPlain(3,neighbors) == "OUT") {
+								int neighbor1 = atom_list[site].getNeighbor(3,neighbors,atom_list);
+								//cout << atom_list[neighbor1].pos[0];
+								for (int neighbors2 = 0; neighbors2 < 12; neighbors2++) {
+									int x = 0;
+								}
+							}
+							spin_total += atom_list[site].getSpin() * atom_list[site].getNeighborSpin(3, neighbors, atom_list);
+						}
+					}
+				}
+			}
+			spin_avg += spin_total;
+			spin_avg2 += spin_total2;
+			e_avg += e_total;
+		}
+		cout << temp;
+		cout << " , ";
+		cout << e_avg / passes / (numb_atoms/2);
+		cout << " , ";
+		cout << spin_avg / passes / (numb_atoms/2) / 12;
+		cout << " , ";
+		cout << spin_avg2 / passes / (numb_atoms/2);
 		cout << " , ";
 		cout << flip_count;
 		cout << " , ";
