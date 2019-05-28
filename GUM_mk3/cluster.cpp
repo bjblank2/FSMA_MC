@@ -115,10 +115,14 @@ void Cluster::growClusterWolff(float temp, vector<Atom> &atom_list) {
 		}
 		else {
 			neighbor++;
-			if (neighbor > 8) {
+			if (neighbor >= 8) {
 				neighbor = 0;
 				setSiteStatus(neighbor_site, "cap", atom_list);
 				root.pop_back();
+				if (root.size() == 0) {
+					continue_growth = false;
+					root.push_back(seed);
+				}
 			}
 		}
 	}
@@ -216,10 +220,14 @@ void Cluster::growClusterMixed(float temp, int _new_phase, vector<Atom> &atom_li
 			}
 			else { 
 				neighbor++;
-				if (neighbor > 8) {
+				if (neighbor >= 8) {
 					neighbor = 0;
 					setSiteStatus(neighbor_site, "cap", atom_list);
 					root.pop_back();
+					if (root.size() == 0) {
+						continue_growth = false;
+						root.push_back(seed);
+					}
 				}
 			}
 		}
@@ -297,10 +305,14 @@ void Cluster::growClusterMixed(float temp, int _new_phase, vector<Atom> &atom_li
 			}
 			else {
 				neighbor++;
-				if (neighbor > 8) {
+				if (neighbor >= 8) {
 					neighbor = 0;
 					setSiteStatus(neighbor_site, "cap", atom_list);
 					root.pop_back();
+					if (root.size() == 0) {
+						continue_growth = false;
+						root.push_back(seed);
+					}
 				}
 			}
 		}
