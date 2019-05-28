@@ -867,6 +867,8 @@ float evalSiteEnergy6(float temp, int site, vector<Atom> &atom_list, vector<Rule
 	int site_spin = atom_list[site].getSpin();
 	float avg_J;
 	float avg_K;
+	float avg_J_sum = 0;
+	float avg_K_sum = 0;
 	int sig1;
 	int sig2;
 	for (int neighbor = 0; neighbor < atom_list[site].getNumbNeighbors(); neighbor++) {
@@ -876,6 +878,8 @@ float evalSiteEnergy6(float temp, int site, vector<Atom> &atom_list, vector<Rule
 		neighbor_phase = atom_list[neighbor_site].getPhase();
 		avg_J = (atom_list[site].J + atom_list[neighbor_site].J) / 2;
 		avg_K = (atom_list[site].K + atom_list[neighbor_site].K) / 2;
+		avg_J_sum += avg_J;
+		avg_K_sum += avg_K;
 		sig1 = 1 - pow(site_phase, 2);
 		sig2 = 1 - pow(neighbor_phase, 2);
 		site_energy += avg_J * site_phase*neighbor_phase + avg_K * sig1*sig2;
@@ -884,8 +888,8 @@ float evalSiteEnergy6(float temp, int site, vector<Atom> &atom_list, vector<Rule
 	site_energy -= Kb * temp * log(2)*(1 - pow(site_phase, 2));
 	site_energy -= 3 * uB*H*site_spin;
 	// add mag contribution
-	J_K[0] = avg_J / atom_list[site].getNumbNeighbors();
-	J_K[1] = avg_K / atom_list[site].getNumbNeighbors();
+	J_K[0] = avg_J_sum / atom_list[site].getNumbNeighbors();
+	J_K[1] = avg_K_sum / atom_list[site].getNumbNeighbors();
 	return site_energy;
 }
 
@@ -1575,7 +1579,7 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 				atom_list[site].setSpin(new_spin);
 				re_calcJK(site, old_spin, atom_list, cluster_rules, spin_rules);
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				H_site_new = evalSiteEnergy6(temp, site, atom_list, cluster_rules, spin_rules, J_K);                     //////////////
+				H_site_new = evalSiteEnergy6(temp, site, atom_list, cluster_rules, spin_rules, J_K);                   ////////////////
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 				if (H_site_new <= H_site_old) {
 					e_total += H_site_new;
@@ -1612,7 +1616,7 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 		}
 		e_avg = 0;
 		phase_total = 0;
-		for (int clust_pass = 0; clust_pass < 500; clust_pass++) {
+		for (int clust_pass = 0; clust_pass < cluster_passes; clust_pass++) {
 			seed_site = uni(rng_i);
 			seed_phase = atom_list[seed_site].getPhase();
 			phase_same = true;
@@ -1667,8 +1671,8 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 			for (int k = 0; k < numb_atoms; k++) { phase_total += abs(atom_list[k].getPhase()); }
 			//cout << evalLattice(temp, atom_list, cluster_rules, spin_rules, J_K) << " " << clust_pass << " " << e_avg <<"\n";
 		}
-		phase_avg = phase_total/500;
-		e_total = e_avg/500;//evalLattice(temp, atom_list, cluster_rules, spin_rules, J_K);
+		phase_avg = phase_total/cluster_passes;
+		e_total = e_avg/cluster_passes;//evalLattice(temp, atom_list, cluster_rules, spin_rules, J_K);
 		cout << temp;
 		cout << " , ";
 		cout << e_total; // e_avg / passes / numb_atoms * 16;
@@ -2283,9 +2287,9 @@ void runMetropolis7(float passes, float temp1, float temp2, float temp_inc, vect
 				}
 				atom_list[site].setSpin(new_spin);
 				atom_list[site].setPhase(new_phase);
-				if (old_spin != new_spin) {
+				//if (old_spin != new_spin) {
 					re_calcJK(site, old_spin, atom_list, cluster_rules, spin_rules);
-				}
+				//}
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 				e_site_new = evalSiteEnergy6(temp, site, atom_list, cluster_rules, spin_rules, J_K);                                     //
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2311,9 +2315,9 @@ void runMetropolis7(float passes, float temp1, float temp2, float temp_inc, vect
 					else {
 						atom_list[site].setPhase(old_phase);
 						atom_list[site].setSpin(old_spin);
-						if (old_spin != new_spin) {
+						//if (old_spin != new_spin) {
 							re_calcJK(site, new_spin, atom_list, cluster_rules, spin_rules);
-						}
+						//}
 						keep = false;
 						e_total += e_site_old;
 						atom_avg_J += current_J;
