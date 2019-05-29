@@ -2286,8 +2286,6 @@ void runMetropolis7(float passes, float temp1, float temp2, float temp_inc, vect
 					flip_count2 += 1;
 					keep = true;
 					e_total += e_site_new;
-					atom_avg_J += new_J;
-					atom_avg_K += new_K;
 				}
 				else {
 					keep_rand = unif(rng);
@@ -2296,8 +2294,6 @@ void runMetropolis7(float passes, float temp1, float temp2, float temp_inc, vect
 						keep = true;
 						flip_count += 1;
 						e_total += e_site_new;
-						atom_avg_J += new_J;
-						atom_avg_K += new_K;
 					}
 					else {
 						atom_list[site].setPhase(old_phase);
@@ -2322,8 +2318,6 @@ void runMetropolis7(float passes, float temp1, float temp2, float temp_inc, vect
 			spin_avg += spin_total;
 			spin_avg2 += spin_total2;
 			e_avg += e_total;
-			pass_avg_J += atom_avg_J;
-			pass_avg_K += atom_avg_K;
 		}
 		cout << temp;
 		cout << " , ";
