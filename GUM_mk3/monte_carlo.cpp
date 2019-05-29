@@ -1600,8 +1600,6 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 					}
 				}
 			}
-			phase_avg += phase_total;
-			phase_avg_abs += phase_total_abs;
 			spin_avg += spin_total;
 			spin_avg2 += spin_total2;
 			e_avg += e_total;

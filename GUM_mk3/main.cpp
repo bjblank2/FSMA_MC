@@ -12,14 +12,14 @@ int main(void) {
 	int shape[3] = { 10, 10, 20 };//{ 8,8,16 }; //{ 20,20,40 }; //{ 14,14,18 }; //{ 2,2,4 }; //{ 4,4,8 };
 	int species[3] = { 1000, 1000, 0 };//{ 512, 384, 128 }; //{ 8000,8000,0 }; //{ 2744,2744,0 }; //{8,6,2}; //{ 64,48,16 };
 	cout << shape[0] << ',' << shape[1] << ',' << shape[2] << '\n';
-	fillAtomList(atom_list, shape, species, "MART", "FM", "MART");
+	fillAtomList(atom_list, shape, species, "MART", "RAND", "MART");
 	cout << species[0] << ',' << species[1] << ',' << species[2] << '\n';
 	fillRuleList(cluster_rules, "CLUSTER_RULES.txt", "FIT.txt",0);
 	cout << "Testing" << '\n';
 	fillRuleList(spin_rules, "SPIN_RULES.txt", "FIT.txt", cluster_rules.size());
 	cout << "begining MC" << '\n';
 	//runMetropolis3(100, 100, 200, 2000, 10, atom_list, cluster_rules, spin_rules);
-	runMetropolis7(500,1,2010,100, atom_list, cluster_rules, spin_rules);
+	runMetropolis7(500,1,2010,10, atom_list, cluster_rules, spin_rules);
 	//runMetropolisISING(1000,1,2010,1, atom_list, cluster_rules, spin_rules);
 	int exit;
 	std::cin >> exit;
