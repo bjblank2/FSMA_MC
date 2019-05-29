@@ -856,7 +856,7 @@ float evalSiteEnergy5(float temp, int site, vector<Atom> &atom_list, vector<Rule
 	return current_enrg;
 }
 
-float evalSiteEnergy6(float temp, int site, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules, vector<float> &J_K) {
+float evalSiteEnergy6(float temp, int site, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules) {
 	float Kb = 0.000086173324;
 	float uB = .000057883818012;
 	float H = 0;
@@ -867,8 +867,6 @@ float evalSiteEnergy6(float temp, int site, vector<Atom> &atom_list, vector<Rule
 	int site_spin = atom_list[site].getSpin();
 	float avg_J;
 	float avg_K;
-	float avg_J_sum = 0;
-	float avg_K_sum = 0;
 	int sig1;
 	int sig2;
 	for (int neighbor = 0; neighbor < atom_list[site].getNumbNeighbors(); neighbor++) {
@@ -878,8 +876,6 @@ float evalSiteEnergy6(float temp, int site, vector<Atom> &atom_list, vector<Rule
 		neighbor_phase = atom_list[neighbor_site].getPhase();
 		avg_J = (atom_list[site].J + atom_list[neighbor_site].J) / 2;
 		avg_K = (atom_list[site].K + atom_list[neighbor_site].K) / 2;
-		avg_J_sum += avg_J;
-		avg_K_sum += avg_K;
 		sig1 = 1 - pow(site_phase, 2);
 		sig2 = 1 - pow(neighbor_phase, 2);
 		site_energy += avg_J * site_phase*neighbor_phase + avg_K * sig1*sig2;
@@ -888,8 +884,6 @@ float evalSiteEnergy6(float temp, int site, vector<Atom> &atom_list, vector<Rule
 	site_energy -= Kb * temp * log(2)*(1 - pow(site_phase, 2));
 	site_energy -= 3 * uB*H*site_spin;
 	// add mag contribution
-	J_K[0] = avg_J_sum / atom_list[site].getNumbNeighbors();
-	J_K[1] = avg_K_sum / atom_list[site].getNumbNeighbors();
 	return site_energy;
 }
 
@@ -1559,7 +1553,7 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 			for (int site = 0; site < atom_list.size(); site++) {
 				// Flip Spin
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				H_site_old = evalSiteEnergy6(temp, site, atom_list, cluster_rules, spin_rules, J_K);                   ////////////////
+				H_site_old = evalSiteEnergy6(temp, site, atom_list, cluster_rules, spin_rules);                   ////////////////
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 				old_spin = atom_list[site].getSpin();
 				spin_same = true;
@@ -1579,7 +1573,7 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 				atom_list[site].setSpin(new_spin);
 				re_calcJK(site, old_spin, atom_list, cluster_rules, spin_rules);
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				H_site_new = evalSiteEnergy6(temp, site, atom_list, cluster_rules, spin_rules, J_K);                   ////////////////
+				H_site_new = evalSiteEnergy6(temp, site, atom_list, cluster_rules, spin_rules);                   ////////////////
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 				if (H_site_new <= H_site_old) {
 					e_total += H_site_new;
@@ -2208,8 +2202,6 @@ void runMetropolis7(float passes, float temp1, float temp2, float temp_inc, vect
 	float phase_avg = 0;
 	float keep_prob = 0;
 	int numb_atoms = size(atom_list);
-	float current_J;
-	float current_K;
 	float new_J;
 	float new_K;
 	float atom_avg_J;
@@ -2218,7 +2210,6 @@ void runMetropolis7(float passes, float temp1, float temp2, float temp_inc, vect
 	float pass_avg_K;
 	int flip_count = 0;
 	int flip_count2 = 0;
-	vector<float> J_K = { 0,0 };
 	std::mt19937_64 rng;
 	uint64_t timeSeed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
 	std::seed_seq ss{ uint32_t(timeSeed & 0xffffffff), uint32_t(timeSeed >> 32) };
@@ -2254,10 +2245,8 @@ void runMetropolis7(float passes, float temp1, float temp2, float temp_inc, vect
 				// Flip Phase and Spin
 				bool keep = false;
 				/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				e_site_old = evalSiteEnergy6(temp, site, atom_list, cluster_rules, spin_rules, J_K);                                           //
+				e_site_old = evalSiteEnergy6(temp, site, atom_list, cluster_rules, spin_rules);                                           //
 				/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				current_J = J_K[0];
-				current_K = J_K[1];
 				old_phase = atom_list[site].getPhase();
 				old_spin = atom_list[site].getSpin();
 				both_same = true;
@@ -2291,10 +2280,8 @@ void runMetropolis7(float passes, float temp1, float temp2, float temp_inc, vect
 					re_calcJK(site, old_spin, atom_list, cluster_rules, spin_rules);
 				//}
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				e_site_new = evalSiteEnergy6(temp, site, atom_list, cluster_rules, spin_rules, J_K);                                     //
+				e_site_new = evalSiteEnergy6(temp, site, atom_list, cluster_rules, spin_rules);                                     //
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				new_J = J_K[0];
-				new_K = J_K[1];
 				if (e_site_new <= e_site_old) {
 					flip_count2 += 1;
 					keep = true;
@@ -2320,8 +2307,6 @@ void runMetropolis7(float passes, float temp1, float temp2, float temp_inc, vect
 						//}
 						keep = false;
 						e_total += e_site_old;
-						atom_avg_J += current_J;
-						atom_avg_K += current_K;
 					}
 				}
 				current_phase = atom_list[site].getPhase();
@@ -2350,9 +2335,9 @@ void runMetropolis7(float passes, float temp1, float temp2, float temp_inc, vect
 		cout << " , ";
 		cout << spin_avg2 / passes / numb_atoms;
 		cout << " , ";
-		cout << pass_avg_J / passes / numb_atoms;
+		//cout << pass_avg_J / passes / numb_atoms;
 		cout << " , ";
-		cout << pass_avg_K / passes / numb_atoms;
+		//cout << pass_avg_K / passes / numb_atoms;
 		cout << " , ";
 		cout << flip_count;
 		cout << " , ";
