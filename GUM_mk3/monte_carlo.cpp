@@ -1104,7 +1104,9 @@ void flipCluster(int seed_phase, int new_phase, vector<Atom> &atom_list, Cluster
 		}
 	}
 }
-
+//////////////////////////////////////////////////////////////////////////////////////////////
+// Befor you run a MC algorithm be sure to check if it is configured for heating or cooling //
+//////////////////////////////////////////////////////////////////////////////////////////////
 void runMetropolis1(float passes, float temp1, float temp2, float temp_inc, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules) {
 	float Kb = .0000861733035;
 	float e_total = 0;
@@ -1475,8 +1477,8 @@ void runMetropolis2(float passes, float temp1, float temp2, float temp_inc, vect
 		cout << "\n";
 	}
 }
-
-void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp2, float temp_inc, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules) {
+// Mixed Cluster and Wolf Algorithm from Bouadci and Crneiro
+void runMetropolis3(int sub_passes, int total_passes, float temp1, float temp2, float temp_inc, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules) {
 	float Kb = .0000861733035;
 	float e_total = 0;
 	float H_site_old = 0;
@@ -1537,78 +1539,64 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 		phase_avg_abs = 0;
 		spin_avg = 0;
 		spin_avg2 = 0;
-		pass_avg_J = 0;
-		pass_avg_K = 0;
 		flip_count = 0;
 		flip_count2 = 0;
 		//cout << "starting spin flips \n";
-		for (int i = 0; i < spin_passes; i++) {
-			e_total = 0;
-			phase_total = 0;
-			phase_total_abs = 0;
-			spin_total = 0;
-			spin_total2 = 0;
-			atom_avg_J = 0;
-			atom_avg_K = 0;
-			for (int site = 0; site < atom_list.size(); site++) {
-				// Flip Spin
-				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				H_site_old = evalSiteEnergy6(temp, site, atom_list, cluster_rules, spin_rules);                   ////////////////
-				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				old_spin = atom_list[site].getSpin();
-				spin_same = true;
-				while (spin_same == true) {
-					spin_rand = unif(rng);
-					if (spin_rand <= 0.3333333333333333) {
-						new_spin = -1;
+		for (int i = 0; i < total_passes; i++) {
+			for (int j = 0; j < sub_passes; j++) {
+				spin_total = 0;
+				spin_total2 = 0;
+				for (int site = 0; site < atom_list.size(); site++) {
+					// Flip Spin
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					H_site_old = evalSiteEnergy6(temp, site, atom_list, cluster_rules, spin_rules);                   ////////////////
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					old_spin = atom_list[site].getSpin();
+					spin_same = true;
+					while (spin_same == true) {
+						spin_rand = unif(rng);
+						if (spin_rand <= 0.3333333333333333) {
+							new_spin = -1;
+						}
+						else if (spin_rand <= 0.6666666666666666) {
+							new_spin = 0;
+						}
+						else {
+							new_spin = 1;
+						}
+						if (new_spin != old_spin) { spin_same = false; }
 					}
-					else if (spin_rand <= 0.6666666666666666) {
-						new_spin = 0;
-					}
-					else {
-						new_spin = 1;
-					}
-					if (new_spin != old_spin) { spin_same = false; }
-				}
-				atom_list[site].setSpin(new_spin);
-				re_calcJK(site, old_spin, atom_list, cluster_rules, spin_rules);
-				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				H_site_new = evalSiteEnergy6(temp, site, atom_list, cluster_rules, spin_rules);                   ////////////////
-				///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-				if (H_site_new <= H_site_old) {
-					e_total += H_site_new;
-					flip_count2 += 1;
-				}
-				else {
-					keep_rand = unif(rng);
-					keep_prob = exp(-1 / (Kb*temp)*(H_site_new - H_site_old));
-					if (keep_rand < keep_prob) {
-						e_total += H_site_new;
-						flip_count += 1;
+					atom_list[site].setSpin(new_spin);
+					re_calcJK(site, old_spin, atom_list, cluster_rules, spin_rules);
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					H_site_new = evalSiteEnergy6(temp, site, atom_list, cluster_rules, spin_rules);                   ////////////////
+					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					if (H_site_new <= H_site_old) {
+						flip_count2 += 1;
 					}
 					else {
-						atom_list[site].setSpin(old_spin);
-						re_calcJK(site, new_spin, atom_list, cluster_rules, spin_rules);
-						e_total += H_site_old;
+						keep_rand = unif(rng);
+						keep_prob = exp(-1 / (Kb*temp)*(H_site_new - H_site_old));
+						if (keep_rand < keep_prob) {
+							flip_count += 1;
+						}
+						else {
+							atom_list[site].setSpin(old_spin);
+							re_calcJK(site, new_spin, atom_list, cluster_rules, spin_rules);
+						}
+					}
+					current_spin = atom_list[site].getSpin();
+					spin_total2 += current_spin;
+					if (atom_list[site].getSpecies() != 0) {
+						for (int neighbors = 0; neighbors < 6; neighbors++) {
+							spin_total += atom_list[site].getSpin() * atom_list[site].getNeighborSpin(2, neighbors, atom_list);
+						}
 					}
 				}
-				current_spin = atom_list[site].getSpin();
-				spin_total2 += current_spin;
-				if (atom_list[site].getSpecies() != 0) {
-					for (int neighbors = 0; neighbors < 6; neighbors++) {
-						spin_total += atom_list[site].getSpin() * atom_list[site].getNeighborSpin(2, neighbors, atom_list);
-					}
-				}
+				spin_avg += spin_total/numb_atoms;
+				spin_avg2 += spin_total2/numb_atoms;
 			}
-			spin_avg += spin_total;
-			spin_avg2 += spin_total2;
-			e_avg += e_total;
-			pass_avg_J += atom_avg_J;
-			pass_avg_K += atom_avg_K;
-		}
-		e_avg = 0;
-		phase_avg = 0;
-		for (int clust_pass = 0; clust_pass < cluster_passes; clust_pass++) {
+		    // Starting Mixed Cluster/Wolff moves
 			seed_site = uni(rng_i);
 			seed_phase = atom_list[seed_site].getPhase();
 			phase_same = true;
@@ -1661,24 +1649,19 @@ void runMetropolis3(int spin_passes, int cluster_passes, float temp1, float temp
 			}
 			e_avg += evalLattice(temp, atom_list, cluster_rules, spin_rules, J_K);
 			for (int k = 0; k < numb_atoms; k++) { phase_avg += abs(atom_list[k].getPhase()); }
-			//cout << evalLattice(temp, atom_list, cluster_rules, spin_rules, J_K) << " " << clust_pass << " " << e_avg <<"\n";
 		}
-		phase_total = phase_avg/cluster_passes;
-		e_total = e_avg/cluster_passes;//evalLattice(temp, atom_list, cluster_rules, spin_rules, J_K);
+		phase_total = phase_avg/total_passes;
+		e_total = e_avg/total_passes;//evalLattice(temp, atom_list, cluster_rules, spin_rules, J_K);
 		cout << temp;
 		cout << " , ";
 		cout << e_total; // e_avg / passes / numb_atoms * 16;
 		cout << " , ";
 		cout << phase_total / numb_atoms;// / passes / numb_atoms;
 		cout << " , ";
-		cout << spin_avg / spin_passes / numb_atoms / 6 * 2;
+		cout << spin_avg / (sub_passes*total_passes) / 6 * 2;
 		cout << " , ";
-		cout << spin_avg2 / spin_passes / numb_atoms;
+		cout << spin_avg2 / (sub_passes*total_passes);
 		cout << " , ";
-		//cout << pass_avg_J / passes / numb_atoms;
-		//cout << " , ";
-		//cout << pass_avg_K / passes / numb_atoms;
-		//cout << " , ";
 		cout << flip_count;
 		cout << " , ";
 		cout << flip_count2;
@@ -2175,7 +2158,7 @@ void runMetropolis6(float passes, float temp1, float temp2, float temp_inc, vect
 		cout << "\n";
 	}
 }
-
+// Metropolis Algorithm with "on the fly" and "average of neighbors" J,K calculation
 void runMetropolis7(float passes, float temp1, float temp2, float temp_inc, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules) {
 	float Kb = .0000861733035;
 	float e_total = 0;
@@ -2339,7 +2322,7 @@ void runMetropolis7(float passes, float temp1, float temp2, float temp_inc, vect
 }
 
 
-// SPECIAL !!!
+// SPECIAL !!! Ising only code for Josh
 float evalSiteISING(float temp, int site, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules, vector<float> &J_K) {
 	float Kb = 0.000086173324;
 	float uB = .000057883818012;
