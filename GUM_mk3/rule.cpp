@@ -1,12 +1,10 @@
 #include "rule.h"
  
 Rule::Rule(void) {
-	order = 10;
 }    
 
 Rule::Rule(string _name, float _energy_contribution, int _order, string _plain, string _phase, int _coordination, string _neighbor_arrangment, vector<int> _home_species, vector<int> _neighbor_species) {
 	name = _name;
-	int newthing = 0;
 	energy_contribution = _energy_contribution;
 	order = _order;
 	plain = _plain;
