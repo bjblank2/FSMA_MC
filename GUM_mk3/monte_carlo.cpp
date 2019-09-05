@@ -1532,7 +1532,7 @@ void runMetropolis3(int sub_passes, int total_passes, float temp1, float temp2, 
 	for (int site = 0; site < atom_list.size(); site++) {
 		init_calcJK(site, atom_list, cluster_rules, spin_rules);
 	}
-	for (float temp = temp1; temp > temp2; temp += temp_inc) {
+	for (float temp = temp1; temp < temp2; temp += temp_inc) {
 		//cout << "\n" << temp << "\n";
 		e_avg = 0;
 		phase_avg = 0;
@@ -1545,7 +1545,7 @@ void runMetropolis3(int sub_passes, int total_passes, float temp1, float temp2, 
 		for (int i = 0; i < total_passes; i++) {
 			for (int j = 0; j < sub_passes; j++) {
 				spin_total = 0;
-				spin_total2 = 0;
+				spin_total2 = 0; 
 				for (int site = 0; site < atom_list.size(); site++) {
 					// Flip Spin
 					///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2287,7 +2287,7 @@ void runMetropolis7(float passes, float temp1, float temp2, float temp_inc, vect
 					}
 				}
 				current_phase = atom_list[site].getPhase();
-				phase_total += abs(current_phase);
+				phase_total += current_phase;
 				current_spin = atom_list[site].getSpin();
 				if (atom_list[site].getSpecies() != 0) {
 					for (int neighbors = 0; neighbors < 6; neighbors++) {
