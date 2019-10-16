@@ -126,14 +126,15 @@
   <ItemGroup>
     <ClInclude Include="atom.h" />
     <ClInclude Include="cluster.h" />
+    <ClInclude Include="file_io.h" />
     <ClInclude Include="monte_carlo.h" />
-    <ClInclude Include="NewRule.h" />
     <ClInclude Include="rule.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CLUSTER_RULES.txt" />
     <Text Include="FIT.txt" />
     <Text Include="SPIN_RULES.txt" />
+    <Text Include="NewRuel.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Cluster_Rules_NEW" />

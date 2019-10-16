@@ -35,13 +35,16 @@
     <ClInclude Include="atom.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="rule.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="monte_carlo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="cluster.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="file_io.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -53,6 +56,9 @@
       <Filter>Resource Files</Filter>
     </Text>
     <Text Include="CLUSTER_RULES.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="NewRuel.txt">
       <Filter>Resource Files</Filter>
     </Text>
   </ItemGroup>
