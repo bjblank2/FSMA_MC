@@ -115,7 +115,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="atom.cpp" />
     <ClCompile Include="cluster.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="monte_carlo.cpp">
@@ -126,7 +125,6 @@
     <ClCompile Include="sim_cell.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="atom.h" />
     <ClInclude Include="cluster.h" />
     <ClInclude Include="file_io.h" />
     <ClInclude Include="monte_carlo.h" />
