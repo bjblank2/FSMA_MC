@@ -122,6 +122,8 @@
       <Optimization Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Disabled</Optimization>
     </ClCompile>
     <ClCompile Include="rule.cpp" />
+    <ClCompile Include="file_io.cpp" />
+    <ClCompile Include="sim_cell.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="atom.h" />
@@ -129,6 +131,7 @@
     <ClInclude Include="file_io.h" />
     <ClInclude Include="monte_carlo.h" />
     <ClInclude Include="rule.h" />
+    <ClInclude Include="sim_cell.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CLUSTER_RULES.txt" />

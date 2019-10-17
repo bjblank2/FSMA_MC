@@ -27,7 +27,8 @@ public:
 	int index;
 	int pos[3];
 	Atom(void);
-	Atom(int _index, int _species, int _spin, int _phase, int _pos[3]);
+	Atom(int _index, int _species, int _spin, int _phase, float _pos[3]);
+	void setNeighborDists(vector<Atom> &atom_list, float half_cell_dist);
 	void setNeighbor(int _order, string _plain, int _index);
 	void setClusterStatus(string status);
 	string getClusterStatus();

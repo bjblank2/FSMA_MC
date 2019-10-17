@@ -1,6 +1,7 @@
 #pragma once
 #ifndef rule_h
 #define rule_h
+#include "file_io.h"
 #include <stdio.h>
 #include <string>
 #include <vector>
@@ -23,7 +24,6 @@ public:
 	Rule(void);
 	Rule(float _energy_contribution, int _rule_type, string _phase, vector<int> _species, vector<float> _distances, vector<int> _spins);
 	Rule(string  inputline);
-	vector<string> split(string str, const string delim);
 	string GetPhase();
 	float GetEnrgCont();
 	int GetType();

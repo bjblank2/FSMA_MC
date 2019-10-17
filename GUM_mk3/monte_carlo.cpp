@@ -38,42 +38,52 @@ void fillRuleList(vector<Rule> &list, const char * rule_file, int offset) {
 	else cout << "Unable to open file";
 }
 
+void make_supercell(int sup_size[3], float LC[3], vector<float[3]> &pos_list, vector<int> &species_list){
+	int x = sup_size[0];
+	int y = sup_size[1];
+	int z = sup_size[2];
+	int current_cell[3];
+	float new_atom[3];
+	const int unit_length = pos_list.size();
+	for (int i = 0; i < x; i++) {
+		for (int j = 0; j < y; j++) {
+			for (int k = 0; k < z; k++) {
+				if (i != 0 && j != 0 && k != 0) {
+					current_cell[0] = i;
+					current_cell[1] = j;
+					current_cell[2] = k;
+					for (int m = 0; m < unit_length; m++) {
+						for (int n = 0; n < 3; n++) {
+							new_atom[n] = pos_list[m][n] + current_cell[n] * LC[n];
+							pos_list.push_back(new_atom);
+							species_list.push_back(species_list[m]);
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 void fillAtomList(vector<Atom> &atom_list, int shape[3], int numb_species[3], const char * POSCAR_file, string phase_init, string spin_init, string species_init) {
-	int numb_atoms = shape[0] * shape[1] * shape[2];
+	int numb_atoms;
 	int atom_index = 0;
 	int spin;
-	int phase;
+	int phase = 0; /////////////////////////////////// place holder
 	int species;
-	int pos[3];
 	double spin_rand;
 	double phase_rand;
 	int index_rand;
 	bool use_rand = false;
-
-
 	string pos_line;
 	vector<string> pos_lines;
 	vector<string> LCs;
-	vector<float> LCf;
+	float LCf[3];
 	vector<string> pos_list_s;
-	vector<float> pos_list_f;
+	vector<float[3]> pos_list_f;
+	vector<int> species_list;
+	float pos[3];
 	ifstream POS_list;
-	POS_list.open(POSCAR_file);
-
-	if (POS_list.is_open()) {
-		while (getline(POS_list, pos_line))
-		{
-			pos_lines.push_back(pos_line);
-		}
-		POS_list.close();
-		for (int i = 2; i < 5; i++) {
-			pos_line = pos_lines[i];
-
-		}
-	}
-	else cout << "Unable to open file";
-
-
 	std::mt19937_64 rng;
 	uint64_t timeSeed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
 	std::seed_seq ss{ uint32_t(timeSeed & 0xffffffff), uint32_t(timeSeed >> 32) };
@@ -85,76 +95,58 @@ void fillAtomList(vector<Atom> &atom_list, int shape[3], int numb_species[3], co
 	std::seed_seq ss_int{ uint32_t(timeSeed_int & 0xffffffff), uint32_t(timeSeed_int >> 32) };
 	rng_int.seed(ss_int);
 	std::uniform_int_distribution<int> unif_int(0, numb_atoms - 1);
-	int id = 0;
-	for (int i = 0; i < shape[0]; i++) {
-		for (int j = 0; j < shape[1]; j++) {
-			for (int k = 0; k < shape[2]; k++) {
-				spin_rand = unif(rng);
-				phase_rand = unif(rng);
-				// Set atom spin
-				if (spin_init == "FM") {
-					spin = 1;
-				}
-				else if (spin_init == "RAND") {
-					if (spin_rand >= (.6666666666666666)) { spin = -1; }
-					if (spin_rand >= (.3333333333333333) and spin_rand < (.6666666666666666)) { spin = 0; }
-					if (spin_rand < (.3333333333333333)) { spin = 1; }
-				}
-				else if (spin_init == "AFM") {
-					if (k % 2 == 0) {
-						if ((i + j) % 2 == 0) { spin = 1; }
-						else { spin = -1; }
-					}
-					else {
-						if (((i + j + (k + 1) / 2) % 2) == 0) { spin = 1; }
-						else { spin = -1; }
-					}
-				}
-				else { spin = 1; }
-				// Set atom phase
-				if (phase_init == "AUST") { phase = 0; }
-				else if (phase_init == "MART") { phase = 1; }
-				else if (phase_init == "RAND") {
-					if (phase_rand >= (.6666666666666666)) { phase = -1; }
-					if (phase_rand >= (.3333333333333333) and phase_rand < (.6666666666666666)) { phase = 0; }
-					if (phase_rand < (.3333333333333333)) { phase = 1; }
-				}
-				else { phase = 1; }
-				// Set atom species
-				if (k % 2 == 0) { species = 1; }
-				else { species = 0; }
-				if (numb_species[2] != 0) {
-					if (species_init != "RAND") {
-						if (numb_species[1] / numb_species[2] == 1) {
-							if (k % 2 == 0) {
-								if ((i + j + k / 2) % 2 == 0) { species = 2; }
-								else { species = 1; }
-							}
-							else { species = 0; }
-						}
-						else {
-							if (species_init == "ORDERED") {
-								if ((numb_species[0] + numb_species[1] + numb_species[2]) / numb_species[2] == 8) {
-									if (k % 2 == 0) {
-										if ((i / 2 + (j + 1) / 2 + k / 2 % 2) == 0) { species = 2; }
-										else { species = 1; }
-									}
-									else { species = 0; }
-								}
-							}
-						}
-					}
-				}
-				else { use_rand = true; }
-				pos[0] = i;
-				pos[1] = j;
-				pos[2] = k;
-				atom_list.push_back(Atom(atom_index, species, spin, phase, pos));
-				atom_index += 1;
-				id += 1;
 
+
+	POS_list.open(POSCAR_file);
+	if (POS_list.is_open()) {
+		while (getline(POS_list, pos_line))
+		{
+			pos_lines.push_back(pos_line);
+		}
+		POS_list.close();
+		for (int i = 2; i < 5; i++) {
+			pos_line = pos_lines[i];
+			LCs = split(pos_line, " ");
+			LCf[i-2] = stof(LCs[i - 2]);
+		}
+		for (int i = 7; i>pos_lines.size(); i++) {
+			pos_line = pos_lines[i];
+			pos_list_s = split(pos_line, " ");
+			for (int j = 0; j < 3; j++) {
+				pos[j] = stof(pos_list_s[j]);
+			pos_list_f.push_back(pos);
 			}
 		}
+	}
+	else cout << "Unable to open file";
+	int X_num = stoi(split(pos_lines[6], " ")[0]);
+	for (int i = 0; i < pos_list_f.size(); i++) {
+		if (i < X_num) {
+			species_list.push_back(0);
+		}
+		else species_list.push_back(1);
+	}
+	make_supercell(shape, LCf, pos_list_f, species_list);
+	// find neighobr distances
+	for (int i = 0; i < pos_list_f.size();i++) {
+		for (int j = 0; j < pos_list_f.size(); j++) {
+
+		}
+	}
+	for (int i = 0; i < pos_list_f.size(); i++) {
+		spin_rand = unif(rng);
+		if (spin_init == "FM") {
+			spin = 1;
+		}
+		else if (spin_init == "RAND") {
+			if (spin_rand >= (.6666666666666666)) { spin = -1; }
+			if (spin_rand >= (.3333333333333333) and spin_rand < (.6666666666666666)) { spin = 0; }
+			if (spin_rand < (.3333333333333333)) { spin = 1; }
+		}
+		else if (spin_init == "AFM") {
+			spin = 1; ////////////////////////////////////////////////////////////// just a place holder
+		}
+		atom_list.push_back(Atom(i, species_list[i], spin, phase, pos_list_f[i]));
 	}
 	if (species_init == "RAND" || use_rand == true) {
 		int numb_comp = 0;
@@ -169,100 +161,7 @@ void fillAtomList(vector<Atom> &atom_list, int shape[3], int numb_species[3], co
 		}
 	}
 	// Set neighbors
-	atom_index = 0;
-	for (int i = 0; i < shape[0]; i++) {
-		for (int j = 0; j < shape[1]; j++) {
-			for (int k = 0; k < shape[2]; k++) {
-				int neighbor_index = 0;
-				for (int n_i = 0; n_i < shape[0]; n_i++) {
-					for (int n_j = 0; n_j < shape[1]; n_j++) {
-						for (int n_k = 0; n_k < shape[2]; n_k++) {
-							if (n_i == i && n_j == j && n_k == applyBC(k, 1, shape[2])) {
-								atom_list[atom_index].setNeighbor(1, "OUT", neighbor_index);
-							}
-							if (n_i == i && n_j == j && n_k == applyBC(k, -1, shape[2])) {
-								atom_list[atom_index].setNeighbor(1, "OUT", neighbor_index);
-							}
-							if (n_i == applyBC(i, -1, shape[0]) && n_j == j && n_k == applyBC(k, 1, shape[2])) {
-								atom_list[atom_index].setNeighbor(1, "OUT", neighbor_index);
-							}
-							if (n_i == applyBC(i, -1, shape[0]) && n_j == j && n_k == applyBC(k, -1, shape[2])) {
-								atom_list[atom_index].setNeighbor(1, "OUT", neighbor_index);
-							}
-							if (n_i == i && n_j == applyBC(j, -1, shape[1]) && n_k == applyBC(k, 1, shape[2])) {
-								atom_list[atom_index].setNeighbor(1, "OUT", neighbor_index);
-							}
-							if (n_i == i && n_j == applyBC(j, -1, shape[1]) && n_k == applyBC(k, -1, shape[2])) {
-								atom_list[atom_index].setNeighbor(1, "OUT", neighbor_index);
-							}
-							if (n_i == applyBC(i, -1, shape[0]) && n_j == applyBC(j, -1, shape[1]) && n_k == applyBC(k, 1, shape[2])) {
-								atom_list[atom_index].setNeighbor(1, "OUT", neighbor_index);
-							}
-							if (n_i == applyBC(i, -1, shape[0]) && n_j == applyBC(j, -1, shape[1]) && n_k == applyBC(k, -1, shape[2])) {
-								atom_list[atom_index].setNeighbor(1, "OUT", neighbor_index);
-							}
-							if (n_i == applyBC(i, 1, shape[0]) && n_j == j && n_k == k) {
-								atom_list[atom_index].setNeighbor(2, "IN", neighbor_index);
-							}
-							if (n_i == applyBC(i, -1, shape[0]) && n_j == j && n_k == k) {
-								atom_list[atom_index].setNeighbor(2, "IN", neighbor_index);
-							}
-							if (n_i == i && n_j == applyBC(j, 1, shape[1]) && n_k == k) {
-								atom_list[atom_index].setNeighbor(2, "IN", neighbor_index);
-							}
-							if (n_i == i && n_j == applyBC(j, -1, shape[1]) && n_k == k) {
-								atom_list[atom_index].setNeighbor(2, "IN", neighbor_index);
-							}
-							if (n_i == i && n_j == j && n_k == applyBC(k, 2, shape[2])) {
-								atom_list[atom_index].setNeighbor(2, "OUT", neighbor_index);
-							}
-							if (n_i == i && n_j == j && n_k == applyBC(k, -2, shape[2])) {
-								atom_list[atom_index].setNeighbor(2, "OUT", neighbor_index);
-							}
-							if (n_i == applyBC(i, 1, shape[0]) && n_j == j && n_k == applyBC(k, 2, shape[2])) {
-								atom_list[atom_index].setNeighbor(3, "OUT", neighbor_index);
-							}
-							if (n_i == applyBC(i, 1, shape[0]) && n_j == j && n_k == applyBC(k, -2, shape[2])) {
-								atom_list[atom_index].setNeighbor(3, "OUT", neighbor_index);
-							}
-							if (n_i == applyBC(i, -1, shape[0]) && n_j == j && n_k == applyBC(k, 2, shape[2])) {
-								atom_list[atom_index].setNeighbor(3, "OUT", neighbor_index);
-							}
-							if (n_i == applyBC(i, -1, shape[0]) && n_j == j && n_k == applyBC(k, -2, shape[2])) {
-								atom_list[atom_index].setNeighbor(3, "OUT", neighbor_index);
-							}
-							if (n_i == i && n_j == applyBC(j, 1, shape[1]) && n_k == applyBC(k, 2, shape[2])) {
-								atom_list[atom_index].setNeighbor(3, "OUT", neighbor_index);
-							}
-							if (n_i == i && n_j == applyBC(j, 1, shape[1]) && n_k == applyBC(k, -2, shape[2])) {
-								atom_list[atom_index].setNeighbor(3, "OUT", neighbor_index);
-							}
-							if (n_i == i && n_j == applyBC(j, -1, shape[1]) && n_k == applyBC(k, 2, shape[2])) {
-								atom_list[atom_index].setNeighbor(3, "OUT", neighbor_index);
-							}
-							if (n_i == i && n_j == applyBC(j, -1, shape[1]) && n_k == applyBC(k, -2, shape[2])) {
-								atom_list[atom_index].setNeighbor(3, "OUT", neighbor_index);
-							}
-							if (n_i == applyBC(i, 1, shape[0]) && n_j == applyBC(j, 1, shape[1]) && n_k == k) {
-								atom_list[atom_index].setNeighbor(3, "IN", neighbor_index);
-							}
-							if (n_i == applyBC(i, 1, shape[0]) && n_j == applyBC(j, -1, shape[1]) && n_k == k) {
-								atom_list[atom_index].setNeighbor(3, "IN", neighbor_index);
-							}
-							if (n_i == applyBC(i, -1, shape[0]) && n_j == applyBC(j, 1, shape[1]) && n_k == k) {
-								atom_list[atom_index].setNeighbor(3, "IN", neighbor_index);
-							}
-							if (n_i == applyBC(i, -1, shape[0]) && n_j == applyBC(-j, 1, shape[1]) && n_k == k) {
-								atom_list[atom_index].setNeighbor(3, "IN", neighbor_index);
-							}
-							neighbor_index += 1;
-						}
-					}
-				}
-				atom_index += 1;
-			}
-		}
-	}
+
 }
 
 

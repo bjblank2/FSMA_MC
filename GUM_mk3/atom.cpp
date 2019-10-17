@@ -10,7 +10,7 @@ Atom::Atom(void) {
 	cluster_status = "unknown";
 }
 
-Atom::Atom(int _index, int _species, int _spin, int _phase, int _pos[3]) {
+Atom::Atom(int _index, int _species, int _spin, int _phase, float _pos[3]) {
 	index = _index;
 	species = _species;
 	spin = _spin;
@@ -48,7 +48,31 @@ void Atom::setNeighbor(int _order, string _plain, int _index) {
 	neighbor_plains.push_back(_plain);
 	neighbor_orders.push_back(_order);
 }
-
+void Atom::setNeighborDists(vector<Atom> &atom_list, float half_cell_dist) {
+	float pos1[3];
+	float pos2[3];
+	float distXYZ[3];
+	float dist;
+	for (int i = 0; i < atom_list.size(); i++) {
+		pos1[0] = atom_list[i].pos[0];
+		pos1[1] = atom_list[i].pos[1];
+		pos1[2] = atom_list[i].pos[2];
+		for (int j = 0; j < atom_list.size(); j++) {
+			pos2[0] = atom_list[j].pos[0];
+			pos2[1] = atom_list[j].pos[1];
+			pos2[2] = atom_list[j].pos[2];
+			distXYZ[0] = pos1[0] - pos2[0];
+			distXYZ[1] = pos1[1] - pos2[1];
+			distXYZ[2] = pos1[2] - pos2[2];
+			for (int k = 0; k < 3; k++) {
+				if (distXYZ[k] > half_cell_dist) {
+					distXYZ[k] = 2*.....
+				}
+			}
+		}
+		dist = sqrt(pow(pos1[0] - pos2[0], 2) + pow(pos1[1] - pos2[1], 2) + pow(pos1[2] - pos2[2], 2));
+	}
+}
 int Atom::getNeighbor(int _order, int _neighbor, vector<Atom> &atom_list) {
 	int neighbor_index;
 	if (_order == 1) {
@@ -155,7 +179,6 @@ string Atom::getNeighborPlain(int _order, int _neighbor) {
 	}
 	return neighbor_plain;
 }
-
 
 int Atom::getNeighborSpin(int _neighbor, vector<Atom> &atom_list) {
 	int neighbor_index = neighbors[_neighbor];
