@@ -64,6 +64,9 @@
     <Text Include="NewRuel.txt">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="POSCAR">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <None Include="Cluster_Rules_NEW">

@@ -1,6 +1,7 @@
 #include "monte_carlo.h"
 #include <cmath>
 #include <random>
+extern SimCell sim_cell;
 
 void fillRuleList(vector<Rule> &list, const char * rule_file, int offset) {
 	
@@ -30,186 +31,450 @@ void fillRuleList(vector<Rule> &list, const char * rule_file, int offset) {
 	else cout << "Unable to open file";
 }
 
-
-
-
-//void runMetropolis1(float passes, float temp1, float temp2, float temp_inc, vector<Atom> &atom_list, vector<Rule> MC_rules) {
-//	float Kb = .0000861733035;
-//	float e_total = 0;
-//	float e_site_old = 0;
-//	float e_site_new = 0;
-//	float spin_rand = 0;
-//	float keep_rand = 0;
-//	int old_spin = 0;
-//	int new_spin = 0;
-//	int current_spin = 0;
-//	bool spin_same;
-//	float e_avg = 0;
-//	float spin_avg = 0;
-//	float spin_total = 0;
-//	float spin_avg2 = 0;
-//	float spin_total2 = 0;
-//	float keep_prob = 0;
-//	int numb_atoms = size(atom_list);
-//	int flip_count = 0;
-//	int flip_count2 = 0;
-//	std::mt19937_64 rng;
-//	uint64_t timeSeed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
-//	std::seed_seq ss{ uint32_t(timeSeed & 0xffffffff), uint32_t(timeSeed >> 32) };
-//	rng.seed(ss);
-//	std::uniform_real_distribution<double> unif(0, 1);
-//	cout << evalLattice(temp1, atom_list, MC_rules);
-//	cout << "\n";
-//	for (float temp = temp1; temp < temp2; temp += temp_inc) {
-//		e_avg = 0;
-//		spin_avg = 0;
-//		spin_avg2 = 0;
-//		flip_count = 0;
-//		flip_count2 = 0;
-//		for (int i = 0; i < passes; i++) {
-//			e_total = 0;
-//			spin_total = 0;
-//			spin_total2 = 0;
-//			for (int site = 0; site < atom_list.size(); site++) {
-//				// Flip Spin
-//				e_site_old = evalSiteEnergy1(temp, site, atom_list, MC_rules);
-//				old_spin = atom_list[site].getSpin();
-//				spin_same = true;
-//				while (spin_same == true) {
-//					spin_rand = unif(rng);
-//					if (spin_rand <= 0.3333333333333333) {
-//						new_spin = -1;
-//					}
-//					else if (spin_rand <= 0.6666666666666666) {
-//						new_spin = 0;
-//					}
-//					else {
-//						new_spin = 1;
-//					}
-//					if (new_spin != old_spin) { spin_same = false; }
-//				}
-//				atom_list[site].setSpin(new_spin);
-//				e_site_new = evalSiteEnergy1(temp, site, atom_list, MC_rules);
-//				if (e_site_new <= e_site_old) {
-//					e_total += e_site_new;
-//					flip_count2 += 1;
-//				}
-//				else {
-//					keep_rand = unif(rng);
-//					keep_prob = exp(-1 / (Kb*temp)*(e_site_new - e_site_old));
-//					if (keep_rand < keep_prob) {
-//						e_total += e_site_new;
-//						flip_count += 1;
-//					}
-//					else {
-//						atom_list[site].setSpin(old_spin);
-//						e_total += e_site_old;
-//					}
-//				}
-//				current_spin = atom_list[site].getSpin();
-//				spin_total2 += current_spin;
-//				if (atom_list[site].getSpecies() != 0) {
-//					for (int neighbors = 0; neighbors < 6; neighbors++) {
-//						spin_total += atom_list[site].getSpin() * atom_list[site].getNeighborSpin(2, neighbors, atom_list);
-//					}
-//				}
-//			}
-//			spin_avg += spin_total;
-//			spin_avg2 += spin_total2;
-//			e_avg += e_total;
-//		}
-//		cout << temp;
-//		cout << " , ";
-//		cout << e_avg / passes / numb_atoms * 16;
-//		cout << " , ";
-//		cout << spin_avg / passes / numb_atoms / 6 * 2;
-//		cout << " , ";
-//		cout << spin_avg2 / passes / numb_atoms;
-//		cout << " , ";
-//		cout << flip_count;
-//		cout << " , ";
-//		cout << flip_count2;
-//		cout << "\n";
-//	}
-//}
-//
-//float evalLattice(float temp, vector<Atom> &atom_list, vector<Rule> &MC_rules) {
-//	float e_total = 0;
-//	for (int site = 0; site < atom_list.size(); site++) {
-//		e_total += evalSiteEnergy1(temp, site, atom_list, MC_rules);
-//	}
-//	return e_total / atom_list.size() * 16;
-//}
-//
-//float evalSiteEnergy1(float temp, int site, vector<Atom> &atom_list, vector<Atom> &MC_rules) {
-//	float Kb = 0.000086173324;
-//	float uB = .000057883818012;
-//	float H = 0;
-//	float site_energy = 0;
-//	int site_spin = atom_list[site].getSpin();
-//	int sig1;
-//	int sig2;
-//	// select wether to use fixed or on the fly J-K calcuations 
-//	//calcBEGParams(J_K); // Fixed J-K
-//	clacBEGParamsNEW(site, atom_list, cluster_rules, spin_rules, J_K);  // on the fly J-K
-//	for (int neighbor = 0; neighbor < 8; neighbor++) {
-//		neighbor_phase = atom_list[site].getNeighborPhase(1, neighbor, atom_list);
-//		sig1 = 1 - pow(site_phase, 2);
-//		sig2 = 1 - pow(neighbor_phase, 2);
-//		site_energy += J_K[0] * site_phase*neighbor_phase + J_K[1] * sig1*sig2;
-//	}
-//	site_energy /= 8; ////////////////////////////////////////////////////////////////////////// AAAAAAAAAAAAAAAHHHHHHHHH !!!!!!!!!! ////////////
+float evalSiteEnergy1(float temp, int site, SimCell &sim_cell, vector<Rule> &mc_rules) {
+	float Kb = 0.000086173324;
+	float uB = .000057883818012;
+	float H = 0;
+	float site_energy = 0;
+	int site_species = sim_cell.atom_list[site].getSpecies();
+	int site_spin = sim_cell.atom_list[site].getSpin();
+	int site_phase = sim_cell.atom_list[site].getPhase();
 //	site_energy -= Kb * temp * log(8)*(1 - pow(site_phase, 2));
-//	site_energy -= 3 * uB*H*site_spin;
-//	// add mag contribution
-//	int home_spin = atom_list[site].getSpin();
-//	int home_phase = atom_list[site].getPhase();
-//	int home_species = atom_list[site].getSpecies();
-//	int neighbor_spin;
-//	int neighbor_species;
-//	int neighbor_order;
-//	string neighbor_plain;
-//	for (int neighbor = 0; neighbor < atom_list[site].getNumbNeighbors(); neighbor++) {
-//		neighbor_spin = atom_list[site].getNeighborSpin(neighbor, atom_list);
-//		neighbor_phase = atom_list[site].getNeighborPhase(neighbor, atom_list);
-//		neighbor_species = atom_list[site].getNeighborSpecies(neighbor, atom_list);
-//		neighbor_order = atom_list[site].getNeighborOrder(neighbor, atom_list);
-//		neighbor_plain = atom_list[site].getNeighborPlain(neighbor);
-//		for (int i = 0; i < spin_rules.size(); i++) {
-//			if (neighbor_order == spin_rules[i].getOrder()) {
-//				if (find(spin_rules[i].home_species.begin(), spin_rules[i].home_species.end(), home_species) != spin_rules[i].home_species.end()) {
-//					if (find(spin_rules[i].neighbor_species.begin(), spin_rules[i].neighbor_species.end(), neighbor_species) != spin_rules[i].neighbor_species.end()) {
-//						if (neighbor_plain == spin_rules[i].getPlain() || spin_rules[i].getPlain() == "ALL") {
-//							if (spin_rules[i].getNeighborArrangment() == "PERM") {
-//								if (home_species != neighbor_species) {
-//									if (abs(home_phase) == 1) {
-//										if (abs(spin_rules[i].getPhase()) == 1){
-//											site_energy += spin_rules[i].getEnergyContribution()*home_spin*neighbor_spin;
-//										}
-//									}
-//									else if (home_phase == 0) {
-//										if (spin_rules[i].getPhase() == 0) {
-//											site_energy += spin_rules[i].getEnergyContribution()*home_spin*neighbor_spin;
-//										}
-//									}
-//								}
-//							}
-//							else if (spin_rules[i].getNeighborArrangment() == "COMB") {
-//								if (spin_rules[i].getPhase() == 1 == abs(home_phase)) {
-//									site_energy += spin_rules[i].getEnergyContribution()*home_spin*neighbor_spin;
-//								}
-//								else if (spin_rules[i].getPhase() == 0 == home_phase) {
-//									site_energy += spin_rules[i].getEnergyContribution()*home_spin*neighbor_spin;
-//								}
-//							}
-//						}
-//					}
-//				}
-//			}
-//		}
-//	}
-//	return site_energy;
-//}
+	site_energy -= 3 * uB*H*site_spin;
+	for (int rule = 0; rule < mc_rules.size(); rule++) {
+		if (mc_rules[rule].GetLength() == 1) {
+			if (site_species == mc_rules[rule].GetSpecies()[0]) {
+				site_energy += mc_rules[rule].GetEnrgCont();
+				//sim_cell.clust_count[rule] += 1;
+			}
+		}
+		else if (mc_rules[rule].GetLength() == 2) {
+			int neighbor_spin;
+			int neighbor_species;
+			for (int neighbor = 0; neighbor < sim_cell.atom_list[site].getNumbNeighbors(site, sim_cell); neighbor++) {
+				neighbor_spin = sim_cell.atom_list[site].getNeighborSpin(neighbor, sim_cell);
+				neighbor_species = sim_cell.atom_list[site].getNeighborSpecies(neighbor, sim_cell);
+				if (compf(sim_cell.atom_list[site].getNeighborDist(neighbor, sim_cell), mc_rules[rule].GetDists()[0])) {
+					vector<int> pair1{ site_species,neighbor_species };
+					vector<int> pair2{ neighbor_species,site_species };
+					if (pair1 == mc_rules[rule].GetSpecies() || pair2 == mc_rules[rule].GetSpecies()) {
+						if (mc_rules[rule].GetType() == 0) {
+							site_energy += 0.5 * mc_rules[rule].GetEnrgCont();
+							//sim_cell.clust_count[rule] += 1;
+						}
+						else if (mc_rules[rule].GetType() == 1) {
+							site_energy += 0.5 * mc_rules[rule].GetEnrgCont() * site_spin * neighbor_spin;
+							//sim_cell.clust_count[rule] += site_spin * neighbor_spin;
+
+						}
+					}
+				}
+			}
+
+		}
+		else if (mc_rules[rule].GetLength() == 3) {
+			int neighbor1_spin;
+			int neighbor1_species;
+			int neighbor2_spin;
+			int neighbor2_species;
+			for (int neighbor1 = 0; neighbor1 < sim_cell.atom_list[site].getNumbNeighbors(site, sim_cell); neighbor1++) {
+				neighbor1_spin = sim_cell.atom_list[site].getNeighborSpin(neighbor1, sim_cell);
+				neighbor1_species = sim_cell.atom_list[site].getNeighborSpecies(neighbor1, sim_cell);
+				for (int neighbor2 = 0; neighbor2 < sim_cell.atom_list[site].getNumbNeighbors(site, sim_cell); neighbor2++) {
+					neighbor2_spin = sim_cell.atom_list[site].getNeighborSpin(neighbor2, sim_cell);
+					neighbor2_species = sim_cell.atom_list[site].getNeighborSpecies(neighbor2, sim_cell);
+					float dist_ab = sim_cell.atom_list[site].getNeighborDist(neighbor1, sim_cell);
+					float dist_ac = sim_cell.atom_list[site].getNeighborDist(neighbor2, sim_cell);
+					float dist_bc = sim_cell.findAtomDists(sim_cell.atom_list[site].getNeighborIndex(neighbor1, sim_cell), sim_cell.atom_list[site].getNeighborIndex(neighbor2, sim_cell));
+					int atom_a = site_species;
+					int atom_b = neighbor1_species;
+					int atom_c = neighbor2_species;
+					bool cluster_match = false;
+					vector<int> trip{ atom_a,atom_b,atom_c };
+					vector<float> dists{ dist_ab,dist_bc,dist_ac };
+					vector<float> rule_dists = mc_rules[rule].GetDists();
+					if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
+						cluster_match = true;
+					}
+					trip = { atom_a,atom_c,atom_b };
+					dists = { dist_ac,dist_bc,dist_ab };
+					if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
+						cluster_match = true;
+					}
+					trip = { atom_b,atom_a,atom_c };
+					dists = { dist_ab,dist_ac,dist_bc };
+					if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
+						cluster_match = true;
+					}
+					trip = { atom_b,atom_c,atom_a };
+					dists = { dist_bc,dist_ac,dist_ab };
+					if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
+						cluster_match = true;
+					}
+					trip = { atom_c,atom_a,atom_b };
+					dists = { dist_ac,dist_ab,dist_bc };
+					if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
+						cluster_match = true;
+					}
+					trip = { atom_c,atom_b,atom_a };
+					dists = { dist_bc,dist_ab,dist_ac };
+					if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
+						cluster_match = true;
+					}
+					if (cluster_match == true) {
+						if (mc_rules[rule].GetType() == 0) {
+							site_energy += 0.5 * mc_rules[rule].GetEnrgCont();
+							//sim_cell.clust_count[rule] += 1;
+						}
+						else if (mc_rules[rule].GetType() == 1) {
+							site_energy += 0.5 * mc_rules[rule].GetEnrgCont() * site_spin * neighbor1_spin * neighbor2_spin;
+							//sim_cell.clust_count[rule] += site_spin * neighbor1_spin * neighbor2_spin;
+						}
+					}
+				}
+			}
+		}
+	}
+	return site_energy;
+}
+
+float evalSiteEnergy2(float temp, int site, SimCell &sim_cell, vector<Rule> &mc_rules) {
+	float Kb = 0.000086173324;
+	float uB = .000057883818012;
+	float H = 0;
+	float site_energy = 0;
+	int numb_neighbors;
+	int site_species = sim_cell.atom_list[site].getSpecies();
+	int site_spin = sim_cell.atom_list[site].getSpin();
+	int site_phase = sim_cell.atom_list[site].getPhase();
+	//	site_energy -= Kb * temp * log(8)*(1 - pow(site_phase, 2));
+	site_energy -= 3 * uB*H*site_spin;
+	
+	for (int rule = 0; rule < mc_rules.size(); rule++) {
+		if (mc_rules[rule].GetLength() == 1) {
+			if (site_species == mc_rules[rule].GetSpecies()[0]) {
+				site_energy += mc_rules[rule].GetEnrgCont();
+				//sim_cell.clust_count[rule] += 1;
+			}
+		}
+		else if (mc_rules[rule].GetLength() == 2) {
+			int neighbor_spin;
+			int neighbor_species;
+			numb_neighbors = sim_cell.atom_list[site].getNumbNeighbors(site, sim_cell);
+			for (int neighbor = 0; neighbor < numb_neighbors; neighbor++) {
+				neighbor_spin = sim_cell.atom_list[site].getNeighborSpin(neighbor, sim_cell);
+				neighbor_species = sim_cell.atom_list[site].getNeighborSpecies(neighbor, sim_cell);
+				if (compf(sim_cell.atom_list[site].getNeighborDist(neighbor, sim_cell), mc_rules[rule].GetDists()[0])) {
+					vector<int> pair1{ site_species,neighbor_species };
+					vector<int> pair2{ neighbor_species,site_species };
+					if (pair1 == mc_rules[rule].GetSpecies() || pair2 == mc_rules[rule].GetSpecies()) {
+						if (mc_rules[rule].GetType() == 0) {
+							site_energy += 0.5 * mc_rules[rule].GetEnrgCont();
+							//sim_cell.clust_count[rule] += 1;
+						}
+						else if (mc_rules[rule].GetType() == 1) {
+							site_energy += 0.5 * mc_rules[rule].GetEnrgCont() * site_spin * neighbor_spin;
+							//sim_cell.clust_count[rule] += site_spin * neighbor_spin;
+
+						}
+					}
+				}
+			}
+
+		}
+		else if (mc_rules[rule].GetLength() == 3) {
+			int neighbor1_spin;
+			int neighbor1_species;
+			int neighbor2_spin;
+			int neighbor2_species;
+			for (int neighbor1 = 0; neighbor1 < sim_cell.atom_list[site].getNumbNeighbors(site, sim_cell); neighbor1++) {
+				neighbor1_spin = sim_cell.atom_list[site].getNeighborSpin(neighbor1, sim_cell);
+				neighbor1_species = sim_cell.atom_list[site].getNeighborSpecies(neighbor1, sim_cell);
+				for (int neighbor2 = 0; neighbor2 < sim_cell.atom_list[site].getNumbNeighbors(site, sim_cell); neighbor2++) {
+					neighbor2_spin = sim_cell.atom_list[site].getNeighborSpin(neighbor2, sim_cell);
+					neighbor2_species = sim_cell.atom_list[site].getNeighborSpecies(neighbor2, sim_cell);
+					float dist_ab = sim_cell.atom_list[site].getNeighborDist(neighbor1, sim_cell);
+					float dist_ac = sim_cell.atom_list[site].getNeighborDist(neighbor2, sim_cell);
+					float dist_bc = sim_cell.findAtomDists(sim_cell.atom_list[site].getNeighborIndex(neighbor1, sim_cell), sim_cell.atom_list[site].getNeighborIndex(neighbor2, sim_cell));
+					int atom_a = site_species;
+					int atom_b = neighbor1_species;
+					int atom_c = neighbor2_species;
+					bool cluster_match = false;
+					vector<int> trip{ atom_a,atom_b,atom_c };
+					vector<float> dists{ dist_ab,dist_bc,dist_ac };
+					vector<float> rule_dists = mc_rules[rule].GetDists();
+					if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
+						cluster_match = true;
+					}
+					trip = { atom_a,atom_c,atom_b };
+					dists = { dist_ac,dist_bc,dist_ab };
+					if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
+						cluster_match = true;
+					}
+					trip = { atom_b,atom_a,atom_c };
+					dists = { dist_ab,dist_ac,dist_bc };
+					if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
+						cluster_match = true;
+					}
+					trip = { atom_b,atom_c,atom_a };
+					dists = { dist_bc,dist_ac,dist_ab };
+					if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
+						cluster_match = true;
+					}
+					trip = { atom_c,atom_a,atom_b };
+					dists = { dist_ac,dist_ab,dist_bc };
+					if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
+						cluster_match = true;
+					}
+					trip = { atom_c,atom_b,atom_a };
+					dists = { dist_bc,dist_ab,dist_ac };
+					if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
+						cluster_match = true;
+					}
+					if (cluster_match == true) {
+						if (mc_rules[rule].GetType() == 0) {
+							site_energy += 0.5 * mc_rules[rule].GetEnrgCont();
+							//sim_cell.clust_count[rule] += 1;
+						}
+						else if (mc_rules[rule].GetType() == 1) {
+							site_energy += 0.5 * mc_rules[rule].GetEnrgCont() * site_spin * neighbor1_spin * neighbor2_spin;
+							//sim_cell.clust_count[rule] += site_spin * neighbor1_spin * neighbor2_spin;
+						}
+					}
+				}
+			}
+		}
+	}
+	return site_energy;
+}
+
+float evalLattice(float temp, SimCell &sim_cell, vector<Rule> &mc_rules) {
+	float e_total = 0;
+	for (int site = 0; site < sim_cell.numb_atoms; site++) {
+		e_total += evalSiteEnergy1(temp, site, sim_cell, mc_rules);
+	}
+	return e_total/sim_cell.numb_atoms * 16 -66.8295069760671;
+}
+
+void runMetropolis1(float passes, float temp1, float temp2, float temp_inc, SimCell &sim_cell, vector<Rule> &mc_rules) {
+	float Kb = .0000861733035;
+	float e_total = 0;
+	float e_site_old = 0;
+	float e_site_new = 0;
+	float spin_rand = 0;
+	float keep_rand = 0;
+	int old_spin = 0;
+	int new_spin = 0;
+	int current_spin = 0;
+	bool spin_same;
+	float e_avg = 0;
+	float spin_avg = 0;
+	float spin_total = 0;
+	float spin_avg2 = 0;
+	float spin_total2 = 0;
+	float keep_prob = 0;
+	int numb_atoms = sim_cell.numb_atoms;
+	int flip_count = 0;
+	int flip_count2 = 0;
+	std::mt19937_64 rng;
+	uint64_t timeSeed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+	std::seed_seq ss{ uint32_t(timeSeed & 0xffffffff), uint32_t(timeSeed >> 32) };
+	rng.seed(ss);
+	std::uniform_real_distribution<double> unif(0, 1);
+	float initial_enrg = evalLattice(temp1, sim_cell, mc_rules);
+	cout << initial_enrg;
+	cout << "\n";
+	for (float temp = temp1; temp < temp2; temp += temp_inc) {
+		e_avg = 0;
+		spin_avg = 0;
+		spin_avg2 = 0;
+		flip_count = 0;
+		flip_count2 = 0;
+		for (int i = 0; i < passes; i++) {
+			e_total = 0;
+			spin_total = 0;
+			spin_total2 = 0;
+			for (int site = 0; site < numb_atoms; site++) {
+				// Flip Spin
+				e_site_old = evalSiteEnergy1(temp, site, sim_cell, mc_rules);
+				old_spin = sim_cell.atom_list[site].getSpin();
+				spin_same = true;
+				while (spin_same == true) {
+					spin_rand = unif(rng);
+					if (spin_rand <= 0.3333333333333333) {
+						new_spin = -1;
+					}
+					else if (spin_rand <= 0.6666666666666666) {
+						new_spin = 0;
+					}
+					else {
+						new_spin = 1;
+					}
+					if (new_spin != old_spin) { spin_same = false; }
+				}
+				sim_cell.atom_list[site].setSpin(new_spin);
+				e_site_new = evalSiteEnergy1(temp, site, sim_cell, mc_rules);
+				if (e_site_new <= e_site_old) {
+					e_total += e_site_new;
+					flip_count2 += 1;
+				}
+				else {
+					keep_rand = unif(rng);
+					keep_prob = exp(-1 / (Kb*temp)*(e_site_new - e_site_old));
+					if (keep_rand < keep_prob) {
+						e_total += e_site_new;
+						flip_count += 1;
+					}
+					else {
+						sim_cell.atom_list[site].setSpin(old_spin);
+						e_total += e_site_old;
+					}
+				}
+				current_spin = sim_cell.atom_list[site].getSpin();
+				spin_total2 += current_spin;
+				if (sim_cell.atom_list[site].getSpecies() != 0) {
+					for (int neighbors = 0; neighbors < 6; neighbors++) {
+						spin_total += sim_cell.atom_list[site].getSpin() * sim_cell.atom_list[site].getNeighborSpin(neighbors, sim_cell);
+					}
+				}
+			}
+			spin_avg += spin_total;
+			spin_avg2 += spin_total2;
+			e_avg += e_total;
+		}
+		cout << temp;
+		cout << " , ";
+		cout << e_avg / passes / numb_atoms * 16;
+		cout << " , ";
+		cout << spin_avg / passes / numb_atoms / 6 * 2;
+		cout << " , ";
+		cout << spin_avg2 / passes / numb_atoms;
+		cout << " , ";
+		cout << flip_count;
+		cout << " , ";
+		cout << flip_count2;
+		cout << "\n";
+	}
+}
+
+void runMetropolis2(float passes, float temp1, float temp2, float temp_inc, vector<Rule> &mc_rules) {
+	float Kb = .0000861733035;
+	float e_total = 0;
+	float e_site_old = 0;
+	float e_site_new = 0;
+	float spin_rand = 0;
+	float keep_rand = 0;
+	int old_spin = 0;
+	int new_spin = 0;
+	int current_spin = 0;
+	bool spin_same;
+	float e_avg = 0;
+	float spin_avg = 0;
+	float spin_total = 0;
+	float spin_avg2 = 0;
+	float spin_total2 = 0;
+	float keep_prob = 0;
+	int numb_atoms = sim_cell.numb_atoms;
+	vector<SimCell::Atom> &atom_list = sim_cell.atom_list;
+	int flip_count = 0;
+	int flip_count2 = 0;
+	std::mt19937_64 rng;
+	uint64_t timeSeed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+	std::seed_seq ss{ uint32_t(timeSeed & 0xffffffff), uint32_t(timeSeed >> 32) };
+	rng.seed(ss);
+	std::uniform_real_distribution<double> unif(0, 1);
+	float initial_enrg = evalLattice(temp1, sim_cell, mc_rules);
+	cout << initial_enrg;
+	cout << "\n";
+	for (float temp = temp1; temp < temp2; temp += temp_inc) {
+		e_avg = 0;
+		spin_avg = 0;
+		spin_avg2 = 0;
+		flip_count = 0;
+		flip_count2 = 0;
+		for (int i = 0; i < passes; i++) {
+			e_total = 0;
+			spin_total = 0;
+			spin_total2 = 0;
+			for (int site = 0; site < numb_atoms; site++) {
+				// Flip Spin
+				e_site_old = evalSiteEnergy1(temp, site, sim_cell, mc_rules);
+				old_spin = atom_list[site].getSpin();
+				spin_same = true;
+				while (spin_same == true) {
+					spin_rand = unif(rng);
+					if (spin_rand <= 0.3333333333333333) {
+						new_spin = -1;
+					}
+					else if (spin_rand <= 0.6666666666666666) {
+						new_spin = 0;
+					}
+					else {
+						new_spin = 1;
+					}
+					if (new_spin != old_spin) { spin_same = false; }
+				}
+				atom_list[site].setSpin(new_spin);
+				e_site_new = evalSiteEnergy1(temp, site, sim_cell, mc_rules);
+				if (e_site_new <= e_site_old) {
+					e_total += e_site_new;
+					flip_count2 += 1;
+				}
+				else {
+					keep_rand = unif(rng);
+					keep_prob = exp(-1 / (Kb*temp)*(e_site_new - e_site_old));
+					if (keep_rand < keep_prob) {
+						e_total += e_site_new;
+						flip_count += 1;
+					}
+					else {
+						atom_list[site].setSpin(old_spin);
+						e_total += e_site_old;
+					}
+				}
+				current_spin = atom_list[site].getSpin();
+				spin_total2 += current_spin;
+				if (atom_list[site].getSpecies() != 0) {
+					for (int neighbors = 0; neighbors < 6; neighbors++) {
+						spin_total += atom_list[site].getSpin() * atom_list[site].getNeighborSpin(neighbors, sim_cell);
+					}
+				}
+			}
+			spin_avg += spin_total;
+			spin_avg2 += spin_total2;
+			e_avg += e_total;
+		}
+		cout << temp;
+		cout << " , ";
+		cout << e_avg / passes / numb_atoms * 16;
+		cout << " , ";
+		cout << spin_avg / passes / numb_atoms / 6 * 2;
+		cout << " , ";
+		cout << spin_avg2 / passes / numb_atoms;
+		cout << " , ";
+		cout << flip_count;
+		cout << " , ";
+		cout << flip_count2;
+		cout << "\n";
+	}
+}
+
+bool compf(float x1, float x2, float eps) {
+	return (fabs( x1- x2) < eps);
+}
+
+bool compv(vector<float> &x1, vector<float> &x2, float eps) {
+	bool equal = true;
+	for (int i = 0; i < x1.size(); i++) {
+		if (fabs(x1[i] - x2[i]) > eps) {
+			equal = false;
+		}
+	}
+	return equal;
+}
+
+//
+//
 //
 //void clacBEGParams(int site, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules, vector<float> &J_K) {
 //	int home_spin = atom_list[site].getSpin();

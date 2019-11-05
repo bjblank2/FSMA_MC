@@ -136,6 +136,7 @@
     <Text Include="FIT.txt" />
     <Text Include="SPIN_RULES.txt" />
     <Text Include="NewRuel.txt" />
+    <Text Include="POSCAR" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Cluster_Rules_NEW" />

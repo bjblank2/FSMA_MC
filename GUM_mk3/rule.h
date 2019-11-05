@@ -14,7 +14,6 @@ class Rule {
 private: 
 	float energy_contribution;
 	int rule_type;
-	int rule_length;
 	string phase;
 	vector<int> species;
 	vector<float> distances;

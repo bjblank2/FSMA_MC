@@ -10,7 +10,6 @@ Rule::Rule(float _energy_contribution, int _rule_type, string _phase, vector<int
 	species = _species;
 	distances = _distances;
 	spins = _spins;
-	rule_length = species.size();
 }
 
 Rule::Rule(string  inputline) {
@@ -40,7 +39,7 @@ int Rule::GetType() {
 	return rule_type;
 }
 int Rule::GetLength() {
-	return rule_length;
+	return species.size();
 }
 vector<int> Rule::GetSpecies() {
 	return species;
