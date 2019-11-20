@@ -18,8 +18,9 @@ SimCell::SimCell(string POSCAR_file, int _sup_cell[3], vector<int> &_species_num
 	}
 	vector<vector<float>> _pos_list;
 	vector<int> _species_list;
-	make_supercell(_pos_list, _species_list);
-	fillAtomList(_pos_list, _species_list, phase_init, spin_init, species_init);
+	make_supercell(_pos_list, _species_list, phase_init);
+	vector<float> dist_list{ 0 };
+	fillAtomList(_pos_list, _species_list, dist_list, phase_init, spin_init, species_init);
 }
 
 void SimCell::fillUnitCell(string POSCAR_file) {
@@ -66,11 +67,21 @@ void SimCell::fillUnitCell(string POSCAR_file) {
 	}
 }
 
-void SimCell::make_supercell(vector<vector<float>> &_pos_list, vector<int> &_species_list) {
+void SimCell::make_supercell(vector<vector<float>> &_pos_list, vector<int> &_species_list, string phase_init) {
 	int x = sup_cell[0];
 	int y = sup_cell[1];
 	int z = sup_cell[2];
 	int current_cell[3];
+	vector<float> lc;
+	if (phase_init == "MART") {
+		lc = { 1,1,1.5 };
+	}
+	else if (phase_init == "AUST") {
+		lc = { 1,1,1 };
+	}
+	else {
+		cout << "ERROR should be AUST or MART";
+	}
 	vector<float> new_atom_pos{0,0,0};
 	const int unit_length = unit_cell.size();
 	for (int i = 0; i < x; i++) {
@@ -81,7 +92,7 @@ void SimCell::make_supercell(vector<vector<float>> &_pos_list, vector<int> &_spe
 				current_cell[2] = k;
 				for (int m = 0; m < unit_length; m++) {
 					for (int n = 0; n < 3; n++) {
-						new_atom_pos[n] = unit_cell[m].pos[n] + current_cell[n] * unit_LC[n];
+						new_atom_pos[n] = (unit_cell[m].pos[n] + current_cell[n]) * lc[n];
 					}
 					_pos_list.push_back(new_atom_pos);
 					_species_list.push_back(unit_cell[m].getSpecies());
@@ -91,7 +102,7 @@ void SimCell::make_supercell(vector<vector<float>> &_pos_list, vector<int> &_spe
 	}
 }
 
-void SimCell::setNeighborDists() {
+void SimCell::setNeighborDists(vector<float> &dist_list) {
 	float pos1[3];
 	float pos2[3];
 	float distXYZ[3];
@@ -120,7 +131,7 @@ void SimCell::setNeighborDists() {
 				else cout << "ERROR in dist calc";
 			}
 			dist = sqrt(pow(distXYZ[0], 2) + pow(distXYZ[1], 2) + pow(distXYZ[2], 2));
-			if (dist <= cutoff) {
+			if (find(dist_list.begin(), dist_list.end(), dist) != dist_list.end()) {
 				atom_list[i].neighbor_dists.push_back(dist);
 				atom_list[i].neighbors.push_back(j);
 			}
@@ -128,7 +139,7 @@ void SimCell::setNeighborDists() {
 	}
 }
 
-void SimCell::fillAtomList(vector<vector<float>> &_pos_list, vector<int> &_species_list, string phase_init, string spin_init, string species_init) {
+void SimCell::fillAtomList(vector<vector<float>> &_pos_list, vector<int> &_species_list, vector<float> dist_list, string phase_init, string spin_init, string species_init) {
 	int atom_index = 0;
 	int spin;
 	int phase = 0; /////////////////////////////////// place holder
@@ -175,7 +186,7 @@ void SimCell::fillAtomList(vector<vector<float>> &_pos_list, vector<int> &_speci
 			}
 		}
 	}
-	setNeighborDists();
+	setNeighborDists(dist_list);
 }
 
 float SimCell::findAtomDists(int atom1, int atom2) {
@@ -183,7 +194,7 @@ float SimCell::findAtomDists(int atom1, int atom2) {
 	return distance(atom_list[atom1].neighbors.begin(), it);
 }
 
-void SimCell::initSimCell(string POSCAR_file, int _sup_cell[3], vector<int> &_species_numbs, float _cutoff, string _sim_type, string phase_init, string spin_init, string species_init) {
+void SimCell::initSimCell(string POSCAR_file, vector<float> &dist_list, int _sup_cell[3], vector<int> &_species_numbs, float _cutoff, string _sim_type, string phase_init, string spin_init, string species_init) {
 	sim_type = _sim_type;
 	cutoff = _cutoff;
 	for (int i = 0; i < _species_numbs.size(); i++) {
@@ -197,8 +208,8 @@ void SimCell::initSimCell(string POSCAR_file, int _sup_cell[3], vector<int> &_sp
 	}
 	vector<vector<float>> _pos_list;
 	vector<int> _species_list;
-	make_supercell(_pos_list, _species_list);
-	fillAtomList(_pos_list, _species_list, phase_init, spin_init, species_init);
+	make_supercell(_pos_list, _species_list, phase_init);
+	fillAtomList(_pos_list, _species_list, dist_list, phase_init, spin_init, species_init);
 }
 
 SimCell::Atom::Atom(void) {

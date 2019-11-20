@@ -61,10 +61,13 @@
     <Text Include="CLUSTER_RULES.txt">
       <Filter>Resource Files</Filter>
     </Text>
-    <Text Include="NewRuel.txt">
+    <Text Include="POSCAR">
       <Filter>Resource Files</Filter>
     </Text>
-    <Text Include="POSCAR">
+    <Text Include="Aust_Rules.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="Mart_Rules.txt">
       <Filter>Resource Files</Filter>
     </Text>
   </ItemGroup>
