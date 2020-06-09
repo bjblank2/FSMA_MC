@@ -23,11 +23,13 @@ void runMetropolis1(float passes, float temp1, float temp2, float temp_inc, SimC
 void runMetropolis2(float passes, float temp1, float temp2, float temp_inc, vector<Rule> &mc_rules);
 void runMetropolis3(float passes, float temp1, float temp2, float temp_inc, SimCell &sim_cell, vector<Rule> &mc_rules);
 float evalLattice(float temp, SimCell &sim_cell, vector<Rule> &MC_rules);
-float evalLattice(float temp, map<string, float> &rule_map_spin, map<string, float> &rule_map_chem, map<int, int> &atom_spin_map, map<int, int> &atom_species_map, vector<vector<int>> &neighbor_index_list, vector<vector<float>> &neighbor_dist_list);
+float evalLattice(float temp, map<string, float> &rule_map_spin, map<string, float> &rule_map_chem, vector<int> &atom_spin, vector<int> &atom_species, vector<vector<int>> &neighbor_index_list, vector<vector<float>> &neighbor_dist_list);
 float evalSiteEnergy1(float temp, int site, SimCell &sim_cell, vector<Rule> &MC_rules);
 float evalSiteEnergy2(float temp, int site, SimCell &sim_cell, vector<Rule> &MC_rules);
-float evalSiteEnergyAll(float temp, int site, map<string, float> &rule_map_spin, map<string, float> &rule_map_chem, map<int, int> &atom_spin_map, map<int, int> &atom_species_map, vector<vector<int>> &neighbor_index_list, vector<vector<float>> &neighbor_dist_list);
-float evalSiteEnergySpin(float temp, int site, map<string, float> &rule_map_spin, map<int, int> &atom_spin_map, map<int, int> &atom_species_map, vector<vector<int>> &neighbor_index_list, vector<vector<float>> &neighbor_dist_list);
+float evalSiteEnergyAll(float temp, int site, map<string, float> &rule_map_spin, map<string, float> &rule_map_chem, vector<int> &atom_spin, vector<int> &atom_species, vector<vector<int>> &neighbor_index_list, vector<vector<float>> &neighbor_dist_list);
+float evalSiteEnergySpin(float temp, int site, map<string, float> &rule_map_spin, vector<int> &atom_spin, vector<int> &atom_species, vector<vector<int>> &neighbor_index_list, vector<vector<float>> &neighbor_dist_list);
+float calcMag2(int site, vector<int> &atom_spin,vector<vector<int>> &neighbor_index_list, vector<vector<float>> &neighbor_dist_list);
+float delSiteEnergySpin(float temp, int site, int old_spin, map<string, float> &rule_map_spin, vector<int> &atom_spin, vector<int> &atom_species, vector<vector<int>> &neighbor_index_list, vector<vector<float>> &neighbor_dist_list);
 bool compf(float x1, float x2, float eps = 0.000001);
 bool compv(vector<float> &x1, vector<float> &x2, float eps = 0.000001);
 #endif

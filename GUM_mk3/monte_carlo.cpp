@@ -9,16 +9,16 @@ void fillDistList(vector<float> &dist_list, vector<Rule> mc_rules) {
 			if (find(dist_list.begin(), dist_list.end(), mc_rules[i].GetDists()[0]) == dist_list.end()) {
 				dist_list.push_back(mc_rules[i].GetDists()[0]);
 			}
-			else if (mc_rules[i].GetLength() == 3) {
-				if (find(dist_list.begin(), dist_list.end(), mc_rules[i].GetDists()[0]) == dist_list.end()) {
-					dist_list.push_back(mc_rules[i].GetDists()[0]);
-				}
-				if (find(dist_list.begin(), dist_list.end(), mc_rules[i].GetDists()[1]) == dist_list.end()) {
-					dist_list.push_back(mc_rules[i].GetDists()[1]);
-				}
-				if (find(dist_list.begin(), dist_list.end(), mc_rules[i].GetDists()[2]) == dist_list.end()) {
-					dist_list.push_back(mc_rules[i].GetDists()[2]);
-				}
+		}
+		else if (mc_rules[i].GetLength() == 3) {
+			if (find(dist_list.begin(), dist_list.end(), mc_rules[i].GetDists()[0]) == dist_list.end()) {
+				dist_list.push_back(mc_rules[i].GetDists()[0]);
+			}
+			if (find(dist_list.begin(), dist_list.end(), mc_rules[i].GetDists()[1]) == dist_list.end()) {
+				dist_list.push_back(mc_rules[i].GetDists()[1]);
+			}
+			if (find(dist_list.begin(), dist_list.end(), mc_rules[i].GetDists()[2]) == dist_list.end()) {
+				dist_list.push_back(mc_rules[i].GetDists()[2]);
 			}
 		}
 	}
@@ -93,68 +93,68 @@ float evalSiteEnergy1(float temp, int site, SimCell &sim_cell, vector<Rule> &mc_
 			}
 
 		}
-		else if (mc_rules[rule].GetLength() == 3) {
-			int neighbor1_spin;
-			int neighbor1_species;
-			int neighbor2_spin;
-			int neighbor2_species;
-			for (int neighbor1 = 0; neighbor1 < sim_cell.atom_list[site].getNumbNeighbors(site, sim_cell); neighbor1++) {
-				neighbor1_spin = sim_cell.atom_list[site].getNeighborSpin(neighbor1, sim_cell);
-				neighbor1_species = sim_cell.atom_list[site].getNeighborSpecies(neighbor1, sim_cell);
-				for (int neighbor2 = 0; neighbor2 < sim_cell.atom_list[site].getNumbNeighbors(site, sim_cell); neighbor2++) {
-					neighbor2_spin = sim_cell.atom_list[site].getNeighborSpin(neighbor2, sim_cell);
-					neighbor2_species = sim_cell.atom_list[site].getNeighborSpecies(neighbor2, sim_cell);
-					float dist_ab = sim_cell.atom_list[site].getNeighborDist(neighbor1, sim_cell);
-					float dist_ac = sim_cell.atom_list[site].getNeighborDist(neighbor2, sim_cell);
-					float dist_bc = sim_cell.findAtomDists(sim_cell.atom_list[site].getNeighborIndex(neighbor1, sim_cell), sim_cell.atom_list[site].getNeighborIndex(neighbor2, sim_cell));
-					int atom_a = site_species;
-					int atom_b = neighbor1_species;
-					int atom_c = neighbor2_species;
-					bool cluster_match = false;
-					vector<int> trip{ atom_a,atom_b,atom_c };
-					vector<float> dists{ dist_ab,dist_bc,dist_ac };
-					vector<float> rule_dists = mc_rules[rule].GetDists();
-					if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
-						cluster_match = true;
-					}
-					trip = { atom_a,atom_c,atom_b };
-					dists = { dist_ac,dist_bc,dist_ab };
-					if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
-						cluster_match = true;
-					}
-					trip = { atom_b,atom_a,atom_c };
-					dists = { dist_ab,dist_ac,dist_bc };
-					if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
-						cluster_match = true;
-					}
-					trip = { atom_b,atom_c,atom_a };
-					dists = { dist_bc,dist_ac,dist_ab };
-					if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
-						cluster_match = true;
-					}
-					trip = { atom_c,atom_a,atom_b };
-					dists = { dist_ac,dist_ab,dist_bc };
-					if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
-						cluster_match = true;
-					}
-					trip = { atom_c,atom_b,atom_a };
-					dists = { dist_bc,dist_ab,dist_ac };
-					if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
-						cluster_match = true;
-					}
-					if (cluster_match == true) {
-						if (mc_rules[rule].GetType() == 0) {
-							site_energy += 0.5 * mc_rules[rule].GetEnrgCont();
-							//sim_cell.clust_count[rule] += 1;
-						}
-						else if (mc_rules[rule].GetType() == 1) {
-							site_energy += 0.5 * mc_rules[rule].GetEnrgCont() * site_spin * neighbor1_spin * neighbor2_spin;
-							//sim_cell.clust_count[rule] += site_spin * neighbor1_spin * neighbor2_spin;
-						}
-					}
-				}
-			}
-		}
+		//else if (mc_rules[rule].GetLength() == 3) {
+		//	int neighbor1_spin;
+		//	int neighbor1_species;
+		//	int neighbor2_spin;
+		//	int neighbor2_species;
+		//	for (int neighbor1 = 0; neighbor1 < sim_cell.atom_list[site].getNumbNeighbors(site, sim_cell); neighbor1++) {
+		//		neighbor1_spin = sim_cell.atom_list[site].getNeighborSpin(neighbor1, sim_cell);
+		//		neighbor1_species = sim_cell.atom_list[site].getNeighborSpecies(neighbor1, sim_cell);
+		//		for (int neighbor2 = 0; neighbor2 < sim_cell.atom_list[site].getNumbNeighbors(site, sim_cell); neighbor2++) {
+		//			neighbor2_spin = sim_cell.atom_list[site].getNeighborSpin(neighbor2, sim_cell);
+		//			neighbor2_species = sim_cell.atom_list[site].getNeighborSpecies(neighbor2, sim_cell);
+		//			float dist_ab = sim_cell.atom_list[site].getNeighborDist(neighbor1, sim_cell);
+		//			float dist_ac = sim_cell.atom_list[site].getNeighborDist(neighbor2, sim_cell);
+		//			float dist_bc = sim_cell.findAtomDists(sim_cell.atom_list[site].getNeighborIndex(neighbor1, sim_cell), sim_cell.atom_list[site].getNeighborIndex(neighbor2, sim_cell));
+		//			int atom_a = site_species;
+		//			int atom_b = neighbor1_species;
+		//			int atom_c = neighbor2_species;
+		//			bool cluster_match = false;
+		//			vector<int> trip{ atom_a,atom_b,atom_c };
+		//			vector<float> dists{ dist_ab,dist_bc,dist_ac };
+		//			vector<float> rule_dists = mc_rules[rule].GetDists();
+		//			if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
+		//				cluster_match = true;
+		//			}
+		//			trip = { atom_a,atom_c,atom_b };
+		//			dists = { dist_ac,dist_bc,dist_ab };
+		//			if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
+		//				cluster_match = true;
+		//			}
+		//			trip = { atom_b,atom_a,atom_c };
+		//			dists = { dist_ab,dist_ac,dist_bc };
+		//			if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
+		//				cluster_match = true;
+		//			}
+		//			trip = { atom_b,atom_c,atom_a };
+		//			dists = { dist_bc,dist_ac,dist_ab };
+		//			if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
+		//				cluster_match = true;
+		//			}
+		//			trip = { atom_c,atom_a,atom_b };
+		//			dists = { dist_ac,dist_ab,dist_bc };
+		//			if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
+		//				cluster_match = true;
+		//			}
+		//			trip = { atom_c,atom_b,atom_a };
+		//			dists = { dist_bc,dist_ab,dist_ac };
+		//			if (compv(dists, rule_dists) && trip == mc_rules[rule].GetSpecies()) {
+		//				cluster_match = true;
+		//			}
+		//			if (cluster_match == true) {
+		//				if (mc_rules[rule].GetType() == 0) {
+		//					site_energy += 0.5 * mc_rules[rule].GetEnrgCont();
+		//					//sim_cell.clust_count[rule] += 1;
+		//				}
+		//				else if (mc_rules[rule].GetType() == 1) {
+		//					site_energy += 0.5 * mc_rules[rule].GetEnrgCont() * site_spin * neighbor1_spin * neighbor2_spin;
+		//					//sim_cell.clust_count[rule] += site_spin * neighbor1_spin * neighbor2_spin;
+		//				}
+		//			}
+		//		}
+		//	}
+		//}
 	}
 	return site_energy;
 }
@@ -168,7 +168,7 @@ float evalSiteEnergy2(float temp, int site, SimCell &sim_cell, vector<Rule> &mc_
 	int site_species = sim_cell.atom_list[site].getSpecies();
 	int site_spin = sim_cell.atom_list[site].getSpin();
 	int site_phase = sim_cell.atom_list[site].getPhase();
-	//	site_energy -= Kb * temp * log(8)*(1 - pow(site_phase, 2));
+		site_energy -= Kb * temp * log(8)*(1 - pow(site_phase, 2));
 	site_energy -= 3 * uB*H*site_spin;
 	
 	for (int rule = 0; rule < mc_rules.size(); rule++) {
@@ -267,7 +267,7 @@ float evalSiteEnergy2(float temp, int site, SimCell &sim_cell, vector<Rule> &mc_
 	return site_energy;
 }
 
-float evalSiteEnergyAll(float temp, int site, map<string, float> &rule_map_spin, map<string, float> &rule_map_chem, map<int, int> &atom_spin_map, map<int, int> &atom_species_map, vector<vector<int>> &neighbor_index_list, vector<vector<float>> &neighbor_dist_list) {
+float evalSiteEnergyAll(float temp, int site, map<string, float> &rule_map_spin, map<string, float> &rule_map_chem, vector<int> &atom_spin, vector<int> &atom_species, vector<vector<int>> &neighbor_index_list, vector<vector<float>> &neighbor_dist_list) {
 	float Kb = 0.000086173324;
 	float uB = .000057883818012;
 	float H = 0;
@@ -275,8 +275,18 @@ float evalSiteEnergyAll(float temp, int site, map<string, float> &rule_map_spin,
 	float enrg = 0;
 	map<string, float>::iterator rule_itr;
 	// for 1 atom terms
-	int site_species = atom_species_map.find(site)->second;
-	int site_spin = atom_spin_map.find(site)->second;
+	int site_species = atom_species[site];
+	int site_spin = atom_spin[site];
+	int neighbor_site1;
+	int neighbor_species1;
+	int neighbor_spin1;
+	float neighbor_dist1;
+	int neighbor_site2;
+	int neighbor_species2;
+	int neighbor_spin2;
+	int dist_2_ind;
+	float neighbor_dist2;
+	float neighbor_dist3;
 	//	site_energy -= Kb * temp * log(8)*(1 - pow(site_phase, 2));
 	enrg -= 3 * uB*H*site_spin;
 	key = "_" + to_string(site_species) + ",0,";
@@ -284,30 +294,30 @@ float evalSiteEnergyAll(float temp, int site, map<string, float> &rule_map_spin,
 	enrg += (rule_itr != rule_map_chem.end()) ? rule_itr->second : 0.0;
 	// for 2 atom terms
 	for (int i = 0; i < neighbor_index_list[site].size(); i++) {
-		int neighbor_site1 = neighbor_index_list[site][i];
-		int neighbor_species1 = atom_species_map.find(neighbor_site1)->second;
-		int neighbor_spin1 = atom_spin_map.find(neighbor_site1)->second;
-		float neighbor_dist1 = neighbor_dist_list[site][i];
+		neighbor_site1 = neighbor_index_list[site][i];
+		neighbor_species1 = atom_species[neighbor_site1];
+		neighbor_spin1 = atom_spin[neighbor_site1];
+		neighbor_dist1 = neighbor_dist_list[site][i];
 		key = "_" + to_string(site_species) + "," + to_string(neighbor_species1) + "," + to_string(neighbor_dist1) + ",";
 		rule_itr = rule_map_chem.find(key);
-		enrg += (rule_itr != rule_map_chem.end()) ? rule_itr->second : 0.0;
+		enrg += (rule_itr != rule_map_chem.end()) ? rule_itr->second/2 : 0.0;
 		rule_itr = rule_map_spin.find(key);
-		enrg += (rule_itr != rule_map_spin.end()) ? rule_itr->second * site_spin * neighbor_spin1 : 0.0;
+		enrg += (rule_itr != rule_map_spin.end()) ? rule_itr->second/2 * site_spin * neighbor_spin1 : 0.0;
 	// for 3 atom terms	
 		for (int j = 0; j < neighbor_index_list[site].size(); j++) {
 			if (i != j) {
-				int neighbor_site2 = neighbor_index_list[site][j];
-				int neighbor_species2 = atom_species_map.find(neighbor_site2)->second;
-				int neighbor_spin2 = atom_spin_map.find(neighbor_site2)->second;
+				neighbor_site2 = neighbor_index_list[site][j];
+				neighbor_species2 = atom_species[neighbor_site2];
+				neighbor_spin2 = atom_spin[neighbor_site2];
 				vector<int>::iterator dist_2_itr = find(neighbor_index_list[neighbor_site1].begin(), neighbor_index_list[neighbor_site1].end(), neighbor_site2);
 				if (dist_2_itr != neighbor_index_list[neighbor_site1].end()) {
-					int dist_2_ind = distance(neighbor_index_list[neighbor_site1].begin(), dist_2_itr);
-					float neighbor_dist2 = neighbor_dist_list[neighbor_site1][dist_2_ind];
-					float neighbor_dist3 = neighbor_dist_list[site][neighbor_site2];
+					dist_2_ind = distance(neighbor_index_list[neighbor_site1].begin(), dist_2_itr);
+					neighbor_dist2 = neighbor_dist_list[neighbor_site1][dist_2_ind];
+					neighbor_dist3 = neighbor_dist_list[site][j];
 					key = "_" + to_string(site_species) + "," + to_string(neighbor_species1) + "," + to_string(neighbor_species2);
 					key +="," + to_string(neighbor_dist1) + "," + to_string(neighbor_dist2) + "," + to_string(neighbor_dist3) + ",";
 					rule_itr = rule_map_spin.find(key);
-					enrg += (rule_itr != rule_map_chem.end()) ? rule_itr->second * site_spin * neighbor_spin1 : 0.0;
+					enrg += (rule_itr != rule_map_chem.end()) ? rule_itr->second/2 * site_spin * neighbor_spin1 : 0.0;
 				}
 			}
 		}
@@ -315,26 +325,74 @@ float evalSiteEnergyAll(float temp, int site, map<string, float> &rule_map_spin,
 	return enrg;
 }
 
-float evalSiteEnergySpin(float temp, int site, map<string, float> &rule_map_spin, map<int, int> &atom_spin_map, map<int, int> &atom_species_map, vector<vector<int>> &neighbor_index_list, vector<vector<float>> &neighbor_dist_list) {
+float evalSiteEnergySpin(float temp, int site, map<string, float> &rule_map_spin, vector<int> &atom_spin, vector<int> &atom_species, vector<vector<int>> &neighbor_index_list, vector<vector<float>> &neighbor_dist_list) {
 	float Kb = 0.000086173324;
 	float uB = .000057883818012;
 	float H = 0;
 	string key;
 	float enrg = 0;
 	map<string, float>::iterator rule_itr;
-	int site_species = atom_species_map.find(site)->second;
-	int site_spin = atom_spin_map.find(site)->second;
+	int neighbor_site1;
+	int neighbor_species1;
+	int neighbor_spin1;
+	float neighbor_dist1;
+	int site_species = atom_species[site];
+	int site_spin = atom_spin[site];
 	//	site_energy -= Kb * temp * log(8)*(1 - pow(site_phase, 2));
 	enrg -= 3 * uB*H*site_spin;
 	// for 2 atom terms
-	for (int i = 0; i < neighbor_index_list.size(); i++) {
-		int neighbor_site1 = neighbor_index_list[site][i];
-		int neighbor_species1 = atom_species_map.find(neighbor_site1)->second;
-		int neighbor_spin1 = atom_spin_map.find(neighbor_site1)->second;
-		float neighbor_dist1 = neighbor_dist_list[site][i];
+	for (int i = 0; i < neighbor_index_list[site].size(); i++) {
+		neighbor_site1 = neighbor_index_list[site][i];
+		neighbor_species1 = atom_species[neighbor_site1];
+		neighbor_spin1 = atom_spin[neighbor_site1];
+		neighbor_dist1 = neighbor_dist_list[site][i];
 		key = "_" + to_string(site_species) + "," + to_string(neighbor_species1) + "," + to_string(neighbor_dist1) + ",";
 		rule_itr = rule_map_spin.find(key);
-		enrg += (rule_itr != rule_map_spin.end()) ? rule_itr->second * site_spin * neighbor_spin1 : 0.0;
+  		enrg += (rule_itr != rule_map_spin.end()) ? rule_itr->second/2 * site_spin * neighbor_spin1 : 0.0;
+	}
+	return enrg;
+}
+
+float calcMag2(int site, vector<int> &atom_spin, vector<vector<int>> &neighbor_index_list, vector<vector<float>> &neighbor_dist_list){
+	int site_spin = atom_spin[site];
+	int mag_product = 0;
+	for (int i = 0; i < neighbor_dist_list[site].size(); i++) {
+		if (neighbor_dist_list[site][i] == .5){// or neighbor_dist_list[site][i] == 0.75) {
+			mag_product += site_spin * atom_spin[neighbor_index_list[site][i]];
+		}
+	}
+	return mag_product / 6;
+}
+
+float delSiteEnergySpin(float temp, int site, int old_spin, map<string, float> &rule_map_spin, vector<int> &atom_spin, vector<int> &atom_species, vector<vector<int>> &neighbor_index_list, vector<vector<float>> &neighbor_dist_list) {
+	float Kb = 0.000086173324;
+	float uB = .000057883818012;
+	float H = 0;
+	string key;
+	float enrg = 0;
+	map<string, float>::iterator rule_itr;
+	int neighbor_site1;
+	int neighbor_species1;
+	int neighbor_spin1;
+	float neighbor_dist1;
+	int site_species = atom_species[site];
+	int site_spin = atom_spin[site];
+	//	site_energy -= Kb * temp * log(8)*(1 - pow(site_phase, 2));
+	enrg -= 3 * uB*H*site_spin;
+	// for 2 atom terms
+	for (int i = 0; i < neighbor_index_list[site].size(); i++) {
+		neighbor_site1 = neighbor_index_list[site][i];
+		neighbor_species1 = atom_species[neighbor_site1];
+		neighbor_spin1 = atom_spin[neighbor_site1];
+		neighbor_dist1 = neighbor_dist_list[site][i];
+		key = "_" + to_string(site_species) + "," + to_string(neighbor_species1) + "," + to_string(neighbor_dist1) + ",";
+		rule_itr = rule_map_spin.find(key);
+		if (site_spin == 0) {
+			enrg -= (rule_itr != rule_map_spin.end()) ? rule_itr->second * old_spin * neighbor_spin1 : 0.0;
+		}
+		else {
+			enrg += (rule_itr != rule_map_spin.end()) ? rule_itr->second * 2 * site_spin * neighbor_spin1 : 0.0;
+		}
 	}
 	return enrg;
 }
@@ -344,15 +402,23 @@ float evalLattice(float temp, SimCell &sim_cell, vector<Rule> &mc_rules) {
 	for (int site = 0; site < sim_cell.numb_atoms; site++) {
 		e_total += evalSiteEnergy1(temp, site, sim_cell, mc_rules);
 	}
-	return e_total/sim_cell.numb_atoms * 16 -66.8295069760671;
+	return e_total;// / sim_cell.numb_atoms * 16;// - 66.8295069760671;
 }
 
-float evalLattice(float temp, map<string, float> &rule_map_spin, map<string, float> &rule_map_chem, map<int, int> &atom_spin_map, map<int, int> &atom_species_map, vector<vector<int>> &neighbor_index_list, vector<vector<float>> &neighbor_dist_list) {
+float evalLattice(float temp, map<string, float> &rule_map_spin, map<string, float> &rule_map_chem, vector<int> &atom_spin, vector<int> &atom_species, vector<vector<int>> &neighbor_index_list, vector<vector<float>> &neighbor_dist_list) {
 	float enrg = 0;
-	for (int site = 0; site < atom_species_map.size(); site++) {
-		enrg += evalSiteEnergyAll(temp, site, rule_map_spin, rule_map_chem, atom_spin_map, atom_species_map, neighbor_index_list, neighbor_dist_list);
+	for (int site = 0; site < atom_species.size(); site++) {
+		enrg += evalSiteEnergyAll(temp, site, rule_map_spin, rule_map_chem, atom_spin, atom_species, neighbor_index_list, neighbor_dist_list);
 	}
-	return enrg / atom_species_map.size() * 16 - 66.8295069760671;
+	return enrg;// / atom_species.size() * 16; //-66.8295069760671;
+}
+
+float evalLatticeSpin(float temp, map<string, float> &rule_map_spin, vector<int> &atom_spin, vector<int> &atom_species, vector<vector<int>> &neighbor_index_list, vector<vector<float>> &neighbor_dist_list) {
+	float enrg = 0;
+	for (int site = 0; site < atom_species.size(); site++) {
+		enrg += evalSiteEnergySpin(temp, site, rule_map_spin, atom_spin, atom_species, neighbor_index_list, neighbor_dist_list);
+	}
+	return enrg;// / atom_species.size() * 16 - 66.8295069760671;
 }
 
 void runMetropolis1(float passes, float temp1, float temp2, float temp_inc, SimCell &sim_cell, vector<Rule> &mc_rules) {
@@ -559,12 +625,14 @@ void runMetropolis2(float passes, float temp1, float temp2, float temp_inc, vect
 }
 
 void runMetropolis3(float passes, float temp1, float temp2, float temp_inc, SimCell &sim_cell, vector<Rule> &mc_rules) {
+	int numb_atoms = sim_cell.numb_atoms;
+	int numb_neighbors = sim_cell.atom_list[0].getNumbNeighbors(0, sim_cell);
 	map <string, float> rule_map_spin;
 	map <string, float> rule_map_chem;
-	map <int, int> atom_species_map;
-	map <int, int> atom_spin_map;
-	vector<vector<int>> neighbor_index_list(sim_cell.numb_atoms, vector<int>(sim_cell.atom_list[0].getNumbNeighbors(0, sim_cell), 0));
-	vector<vector<float>> neighbor_dist_list(sim_cell.numb_atoms, vector<float>(sim_cell.atom_list[0].getNumbNeighbors(0, sim_cell), 0));
+	vector<int> atom_species_list;
+	vector<int> atom_spin_list;
+	vector<vector<int>> neighbor_index_list(numb_atoms, vector<int>(sim_cell.atom_list[0].getNumbNeighbors(0, sim_cell), 0));
+	vector<vector<float>> neighbor_dist_list(numb_atoms, vector<float>(sim_cell.atom_list[0].getNumbNeighbors(0, sim_cell), 0));
 	// Turn rule list into map for spin and map for chem
 	// Redundent rules are added for [0,1] and [1,0] ect... so that comparison is quicker in mc steps
 	for (int i = 0; i < mc_rules.size(); i++) {
@@ -610,9 +678,9 @@ void runMetropolis3(float passes, float temp1, float temp2, float temp_inc, SimC
 	}
 	// make atom_list more acessable (and a map) for species and spin and neighbors
 	for (int i = 0; i < sim_cell.numb_atoms; i++) {
-		atom_species_map.insert(pair<int, int>(i, sim_cell.atom_list[i].getSpecies()));
-		atom_spin_map.insert(pair<int, int>(i, sim_cell.atom_list[i].getSpin()));
-		for (int j = 0; j < sim_cell.atom_list[i].getNumbNeighbors(i, sim_cell); j++) {
+		atom_species_list.push_back(sim_cell.atom_list[i].getSpecies());
+		atom_spin_list.push_back(sim_cell.atom_list[i].getSpin());
+		for (int j = 0; j < numb_neighbors; j++) {
 			neighbor_index_list[i][j] = sim_cell.atom_list[i].getNeighborIndex(j, sim_cell);
 			neighbor_dist_list[i][j] = sim_cell.atom_list[i].getNeighborDist(j, sim_cell);
 		}
@@ -620,8 +688,10 @@ void runMetropolis3(float passes, float temp1, float temp2, float temp_inc, SimC
 	// Start MC stuff
 	float Kb = .0000861733035;
 	float e_total = 0;
-	float e_site_old = 0;
+	float e_flip = 0;
+	float e_site = 0;
 	float e_site_new = 0;
+	float new_enrg = 0;
 	float spin_rand = 0;
 	float keep_rand = 0;
 	int old_spin = 0;
@@ -634,17 +704,101 @@ void runMetropolis3(float passes, float temp1, float temp2, float temp_inc, SimC
 	float spin_avg2 = 0;
 	float spin_total2 = 0;
 	float keep_prob = 0;
-	int numb_atoms = sim_cell.numb_atoms;
 	int flip_count = 0;
 	int flip_count2 = 0;
+	int spin_avg_Mn = 0;
+	int spin_total_Mn = 0;
+	float spin_avg_Mn2 = 0;
+	float spin_total_Mn2 = 0;
+	map<int, int>::iterator atom_itr;
+	map<int, int>::iterator spin_itr;
 	std::mt19937_64 rng;
 	uint64_t timeSeed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
 	std::seed_seq ss{ uint32_t(timeSeed & 0xffffffff), uint32_t(timeSeed >> 32) };
 	rng.seed(ss);
 	std::uniform_real_distribution<double> unif(0, 1);
-	float initial_enrg = evalLattice(temp1, rule_map_spin, rule_map_chem, atom_spin_map, atom_species_map, neighbor_index_list, neighbor_dist_list);
-	cout << initial_enrg;
-
+	float initial_enrg = evalLattice(temp1, rule_map_spin, rule_map_chem, atom_spin_list, atom_species_list, neighbor_index_list, neighbor_dist_list);
+	float initial_spin_cont = evalLatticeSpin(temp1, rule_map_spin, atom_spin_list, atom_species_list, neighbor_index_list, neighbor_dist_list);
+	cout << initial_enrg / numb_atoms +-4.176806541934177 << ", " << initial_spin_cont / numb_atoms<< "\n";
+	for (int temp = temp1; temp >= temp2; temp+=temp_inc) {
+		e_avg = 0;
+		spin_avg = 0;
+		spin_avg2 = 0;
+		spin_avg_Mn = 0;
+		spin_avg_Mn2 = 0;
+		flip_count = 0;
+		flip_count2 = 0;
+		for (int i = 0; i < passes; i++) {
+			e_total = 0;
+			spin_total = 0;
+			spin_total2 = 0;
+			spin_total_Mn = 0;
+			spin_total_Mn2 = 0;
+			for (int site = 0; site < numb_atoms; site++) {
+				// Flip Spin
+				//e_site_old = evalSiteEnergySpin(temp, site, rule_map_spin, atom_spin_list, atom_species_list, neighbor_index_list, neighbor_dist_list);
+				old_spin = atom_spin_list[site];
+				spin_same = true;
+				e_site = evalSiteEnergySpin(temp, site, rule_map_spin, atom_spin_list, atom_species_list, neighbor_index_list, neighbor_dist_list);
+				while (spin_same == true) {
+					spin_rand = unif(rng);
+					if (spin_rand <= 0.3333333333333333) {
+						new_spin = -1;
+					}
+					else if (spin_rand <= 0.6666666666666666) {
+						new_spin = 0;
+					}
+					else {
+						new_spin = 1;
+					}
+					if (new_spin != old_spin) { spin_same = false; }
+				}
+				atom_spin_list[site] = new_spin;
+				e_site_new = evalSiteEnergySpin(temp, site, rule_map_spin, atom_spin_list, atom_species_list, neighbor_index_list, neighbor_dist_list);
+				e_flip = 2*(e_site_new - e_site);
+				if (e_flip < 0) {
+					flip_count2 += 1;
+				}
+				else {
+					keep_rand = unif(rng);
+					keep_prob = exp(-1 / (Kb*temp)*(e_flip));
+					if (keep_rand < keep_prob) {
+						flip_count += 1;
+					}
+					else {
+						atom_spin_list[site] = old_spin;
+						e_flip = 0;
+					}
+				}
+				initial_enrg += e_flip;
+				e_total += initial_enrg / numb_atoms;
+				current_spin = atom_spin_list[site];
+				spin_total += current_spin;
+				if (atom_species_list[site] == 1) {
+					spin_total_Mn += current_spin;
+					spin_total_Mn2 += calcMag2(site, atom_spin_list, neighbor_index_list, neighbor_dist_list);
+				}
+			}
+			spin_avg += spin_total;
+			spin_avg_Mn += spin_total_Mn;
+			spin_avg_Mn2 += spin_total_Mn2;
+			e_avg += e_total / passes;
+		}
+		cout << temp;
+		cout << " , ";
+		cout << e_avg / numb_atoms * 16;
+		cout << " , ";
+		cout << spin_avg / passes / numb_atoms;
+		cout << " , ";
+		cout << spin_avg_Mn / passes / sim_cell.species_numbs[1];
+		cout << " , ";  
+		cout << spin_avg_Mn2 / passes / sim_cell.species_numbs[1];
+		cout << " , ";
+		cout << flip_count;
+		cout << " , ";
+		cout << flip_count2;
+		cout << "\n";
+	}
 }
 
 bool compf(float x1, float x2, float eps) {
@@ -741,9 +895,6 @@ bool compv(vector<float> &x1, vector<float> &x2, float eps) {
 //	J_K[0] -= .0;
 //	J_K[1] -= .0;
 //}
-
-
-
 
 
 //

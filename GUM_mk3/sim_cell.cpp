@@ -7,11 +7,12 @@ SimCell::SimCell(void) {
 SimCell::SimCell(string POSCAR_file, int _sup_cell[3], vector<int> &_species_numbs, float _cutoff, string _sim_type, string phase_init, string spin_init, string species_init) {
 	sim_type = _sim_type;
 	cutoff = _cutoff;
+	bool use_poscar = true;
 	for (int i = 0; i < _species_numbs.size(); i++) {
 		species_types.push_back(i);
 		species_numbs.push_back(_species_numbs[i]);
 	}
-	fillUnitCell(POSCAR_file);
+	fillUnitCell(POSCAR_file, use_poscar);
 	for (int i = 0; i < 3; i++) {
 		sup_cell[i] = _sup_cell[i];
 		cell_dim[i] = unit_LC[i] * sup_cell[i];
@@ -23,7 +24,7 @@ SimCell::SimCell(string POSCAR_file, int _sup_cell[3], vector<int> &_species_num
 	fillAtomList(_pos_list, _species_list, dist_list, phase_init, spin_init, species_init);
 }
 
-void SimCell::fillUnitCell(string POSCAR_file) {
+void SimCell::fillUnitCell(string POSCAR_file, bool use_poscar) {
 	ifstream POS_list;
 	string pos_line;
 	vector<string> pos_lines;
@@ -56,11 +57,27 @@ void SimCell::fillUnitCell(string POSCAR_file) {
 		pos_list_f.push_back(pos);
 	}
 	X_num = stoi(split(pos_lines[6], " ")[0]);
-	for (int i = 0; i < pos_list_f.size(); i++) {
-		if (i < X_num) {
-			species_list.push_back(0);
+	int comp[3] = { stoi(split(pos_lines[6], " ")[0]), stoi(split(pos_lines[6], " ")[1]), stoi(split(pos_lines[6], " ")[2]) };
+	if (use_poscar == false) {
+		for (int i = 0; i < pos_list_f.size(); i++) {
+			if (i < X_num) {
+				species_list.push_back(0);
+			}
+			else species_list.push_back(1);
 		}
-		else species_list.push_back(1);
+	}
+	else {
+		for (int i = 0; i < pos_list_f.size(); i++) {
+			if (i < comp[0]) {
+				species_list.push_back(0);
+			}
+			else if (i < comp[0] + comp[1]) {
+				species_list.push_back(1);
+			}
+			else {
+				species_list.push_back(2);
+			}
+		}
 	}
 	for (int i = 0; i < pos_list_f.size(); i++) {
 		unit_cell.push_back(Atom(i, species_list[i], 0, 0, pos_list_f[i]));
@@ -72,12 +89,11 @@ void SimCell::make_supercell(vector<vector<float>> &_pos_list, vector<int> &_spe
 	int y = sup_cell[1];
 	int z = sup_cell[2];
 	int current_cell[3];
-	vector<float> lc;
 	if (phase_init == "MART") {
-		lc = { 1,1,1.5 };
+		unit_LC[2] = 1.5;
 	}
 	else if (phase_init == "AUST") {
-		lc = { 1,1,1 };
+		unit_LC[2] = 1;
 	}
 	else {
 		cout << "ERROR should be AUST or MART";
@@ -92,7 +108,7 @@ void SimCell::make_supercell(vector<vector<float>> &_pos_list, vector<int> &_spe
 				current_cell[2] = k;
 				for (int m = 0; m < unit_length; m++) {
 					for (int n = 0; n < 3; n++) {
-						new_atom_pos[n] = (unit_cell[m].pos[n] + current_cell[n]) * lc[n];
+						new_atom_pos[n] = (unit_cell[m].pos[n] + current_cell[n]) * unit_LC[n];
 					}
 					_pos_list.push_back(new_atom_pos);
 					_species_list.push_back(unit_cell[m].getSpecies());
@@ -107,7 +123,8 @@ void SimCell::setNeighborDists(vector<float> &dist_list) {
 	float pos2[3];
 	float distXYZ[3];
 	float dist;
-	for (int i = 0; i < atom_list.size(); i++) {
+	int added = 0;
+ 	for (int i = 0; i < atom_list.size(); i++) {
 		pos1[0] = atom_list[i].pos[0];
 		pos1[1] = atom_list[i].pos[1];
 		pos1[2] = atom_list[i].pos[2];
@@ -115,25 +132,25 @@ void SimCell::setNeighborDists(vector<float> &dist_list) {
 			pos2[0] = atom_list[j].pos[0];
 			pos2[1] = atom_list[j].pos[1];
 			pos2[2] = atom_list[j].pos[2];
-			distXYZ[0] = pos1[0] - pos2[0];
-			distXYZ[1] = pos1[1] - pos2[1];
-			distXYZ[2] = pos1[2] - pos2[2];
+			distXYZ[0] = pos2[0] - pos1[0];
+			distXYZ[1] = pos2[1] - pos1[1];
+			distXYZ[2] = pos2[2] - pos1[2];
 			for (int k = 0; k < 3; k++) {
-				if (distXYZ[k] > .5*cell_dim[k]) {
-					distXYZ[k] = cell_dim[k] - distXYZ[k];
+				if (distXYZ[k] >= .5*cell_dim[k]*unit_LC[k]) {
+					distXYZ[k] = distXYZ[k] - cell_dim[k]*unit_LC[k];
 				}
-				else if (distXYZ[k] < -.5*cell_dim[k]) {///////////////////////////////////////////////
-					distXYZ[k] = distXYZ[k] + cell_dim[k];
+				else if (distXYZ[k] <= -.5*cell_dim[k]*unit_LC[k]) {
+					distXYZ[k] = cell_dim[k]*unit_LC[k] + distXYZ[k];
 				}
-				else if (distXYZ[k] >= -cell_dim[k] & distXYZ[k] <= cell_dim[k]) {
-					distXYZ[k] = abs(distXYZ[k]);
-				}
-				else cout << "ERROR in dist calc";
 			}
 			dist = sqrt(pow(distXYZ[0], 2) + pow(distXYZ[1], 2) + pow(distXYZ[2], 2));
-			if (find(dist_list.begin(), dist_list.end(), dist) != dist_list.end()) {
-				atom_list[i].neighbor_dists.push_back(dist);
-				atom_list[i].neighbors.push_back(j);
+			added = 0;
+			for (int k = 0; k < dist_list.size(); k++) {
+				if (fabs(dist - dist_list[k]) <= .001) {
+					atom_list[i].neighbor_dists.push_back(dist);
+					atom_list[i].neighbors.push_back(j);
+					added = 1;
+				}
 			}
 		}
 	}
@@ -174,6 +191,7 @@ void SimCell::fillAtomList(vector<vector<float>> &_pos_list, vector<int> &_speci
 	std::seed_seq ss_int{ uint32_t(timeSeed_int & 0xffffffff), uint32_t(timeSeed_int >> 32) };
 	rng_int.seed(ss_int);
 	std::uniform_int_distribution<int> unif_int(0, numb_atoms - 1);
+
 	if (species_init == "RAND" || use_rand == true) {
 		int numb_comp = 0;
 		while (numb_comp < species_numbs[2]) {
@@ -194,14 +212,14 @@ float SimCell::findAtomDists(int atom1, int atom2) {
 	return distance(atom_list[atom1].neighbors.begin(), it);
 }
 
-void SimCell::initSimCell(string POSCAR_file, vector<float> &dist_list, int _sup_cell[3], vector<int> &_species_numbs, float _cutoff, string _sim_type, string phase_init, string spin_init, string species_init) {
+void SimCell::initSimCell(string POSCAR_file, vector<float> &dist_list, int _sup_cell[3], vector<int> &_species_numbs, float _cutoff, string _sim_type, string phase_init, string spin_init, string species_init, bool use_poscar) {
 	sim_type = _sim_type;
 	cutoff = _cutoff;
 	for (int i = 0; i < _species_numbs.size(); i++) {
 		species_types.push_back(i);
 		species_numbs.push_back(_species_numbs[i]);
 	}
-	fillUnitCell(POSCAR_file);
+	fillUnitCell(POSCAR_file, use_poscar);
 	for (int i = 0; i < 3; i++) {
 		sup_cell[i] = _sup_cell[i];
 		cell_dim[i] = unit_LC[i] * sup_cell[i];
