@@ -140,6 +140,7 @@
     <Text Include="SPIN_RULES.txt" />
     <Text Include="Aust_Rules.txt" />
     <Text Include="POSCAR" />
+    <Text Include="OUTCAR.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Cluster_Rules_NEW" />
