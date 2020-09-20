@@ -9,40 +9,33 @@
 #include <iterator>
 #include <iostream>
 #include <sstream>
+#include <algorithm>
+#include <iterator>
+#include <map>
 #include "rule.h"
-#include "atom.h"
 #include "cluster.h"
-
+#include "sim_cell.h"
 using namespace std;
 
-int applyBC(int i, int inc, int limit);
-void fillRuleList(vector<Rule> &list, const char * rule_file, const char * fit_file, int offset);
-void fillAtomList(vector<Atom> &atom_list, int shape[3], int numb_species[3], string phase_init, string spin_init, string species_init);
-void init_calcJK(int site, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules);
-void pair_calcJK(int site, int neighbor, vector<Atom> &atom_list, vector<float> J_K); //////////
-void re_calcJK(int site, int old_home_spin, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules);
-void clacBEGParams(vector<float> &J_K);
-void clacBEGParams(int site, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules, vector<float> &J_K);
-void clacBEGParamsNEW(int site, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules, vector<float> &J_K);
-float evalSiteEnergySINGLE(float temp, int site, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules, vector<float> &J_K);
-float evalSiteEnergyTOTAL(float temp, int site, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules, vector<float> &J_K);
-float evalSiteEnergy3(float temp, int site, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules, vector<float> &J_K);
-float evalSiteEnergy4(float temp, int site, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules, vector<float> &J_K);
-float evalSiteEnergy5(float temp, int site, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules);
-float evalSiteEnergy6(float temp, int site, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules);
-void eval_flip(float temp, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules, int site, int new_state[3], vector<float> &flip_enrgs);
-float evalLattice(float temp, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules, vector<float> &J_K);
-void flipCluster(int seed_phase, int new_phase, vector<Atom> &atom_list, Cluster &cluster, bool reset = false);
-float evalCluster(vector<Atom> &atom_list, Cluster &cluster, vector<Rule> &cluster_rules, vector<Rule> &spin_rules, vector<float> &J_K, float temp);
-void runMetropolis1(float passes, float temp1, float temp2, float temp_inc, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules);
-void runMetropolis2(float passes, float temp1, float temp2, float temp_inc, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules);
-void runMetropolis3(int sub_passes, int total_passes, float temp1, float temp2, float temp_inc, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules);
-void runMetropolis4(float passes, float temp1, float temp2, float temp_inc, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules);
-void runMetropolis5(float passes, float temp1, float temp2, float temp_inc, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules);
-void runMetropolis6(float passes, float temp1, float temp2, float temp_inc, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules);
-void runMetropolis7(float passes, float temp1, float temp2, float temp_inc, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules);
-
-// SPECIAL !!!
-float evalSiteISING(float temp, int site, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules, vector<float> &J_K);
-void runMetropolisISING(float passes, float temp1, float temp2, float temp_inc, vector<Atom> &atom_list, vector<Rule> &cluster_rules, vector<Rule> &spin_rules);
-#endif // !mc_h
+void fillDistList(vector<float> &dist_list, vector<Rule> mc_rules);
+void fillRuleList(vector<Rule> &list, const char * rule_file, int offset);
+void runMetropolis1(float passes, float temp1, float temp2, float temp_inc, SimCell &sim_cell, vector<Rule> &mc_rules);
+void runMetropolis2(float passes, float temp1, float temp2, float temp_inc, vector<Rule> &mc_rules);
+void runMetropolis3(float passes, float temp1, float temp2, float temp_inc, SimCell &sim_cell, vector<Rule> &mc_rules);
+void runMetropolis4(float passes, float temp1, float temp2, float temp_inc, SimCell &sim_cell, vector<Rule> &mc_rules);
+void runMetropolis5(float passes, float temp1, float temp2, float temp_inc, SimCell &sim_cell, vector<Rule> &mc_rules);
+void runMetropolis6(float passes, float temp1, float temp2, float temp_inc, SimCell &sim_cell, vector<Rule> &mc_rules);
+void writeSuperCell(vector<int> &atom_species, vector<int>& atom_spins, SimCell &sim_cell);
+float evalLattice(float temp, SimCell &sim_cell, vector<Rule> &MC_rules);
+float evalLattice(float temp, map<string, float> &rule_map_spin, map<string, float> &rule_map_chem, vector<int> &atom_spin, vector<int> &atom_species, vector<vector<int>> &neighbor_index_list, vector<vector<float>> &neighbor_dist_list);
+float evalSiteEnergy1(float temp, int site, SimCell &sim_cell, vector<Rule> &MC_rules);
+float evalSiteEnergy2(float temp, int site, SimCell &sim_cell, vector<Rule> &MC_rules);
+float evalSiteEnergyAll(float temp, int site, map<string, float> &rule_map_spin, map<string, float> &rule_map_chem, vector<int> &atom_spin, vector<int> &atom_species, vector<vector<int>> &neighbor_index_list, vector<vector<float>> &neighbor_dist_list);
+float evalSiteEnergySpin(float temp, int site, map<string, float> &rule_map_spin, vector<int> &atom_spin, vector<int> &atom_species, vector<vector<int>> &neighbor_index_list, vector<vector<float>> &neighbor_dist_list);
+float calcMag2(int site, vector<int> &atom_spin,vector<vector<int>> &neighbor_index_list, vector<vector<float>> &neighbor_dist_list);
+float calcSpecies(int site, vector<int> &atom_species, vector<vector<int>> &neighbor_index_list, vector<vector<float>> &neighbor_dist_list);
+float delSiteEnergySpin(float temp, int site, int old_spin, map<string, float> &rule_map_spin, vector<int> &atom_spin, vector<int> &atom_species, vector<vector<int>> &neighbor_index_list, vector<vector<float>> &neighbor_dist_list);
+float stagMag(int site, int spin, SimCell& sim_cell);
+bool compf(float x1, float x2, float eps = 0.000001);
+bool compv(vector<float> &x1, vector<float> &x2, float eps = 0.000001);
+#endif

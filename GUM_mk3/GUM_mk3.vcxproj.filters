@@ -18,9 +18,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="atom.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="rule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -30,18 +27,27 @@
     <ClCompile Include="cluster.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="file_io.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sim_cell.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="atom.h">
+    <ClInclude Include="monte_carlo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="cluster.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="file_io.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="rule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="monte_carlo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="cluster.h">
+    <ClInclude Include="sim_cell.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -53,6 +59,21 @@
       <Filter>Resource Files</Filter>
     </Text>
     <Text Include="CLUSTER_RULES.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="POSCAR">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="Aust_Rules.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="Mart_Rules.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="OUTCAR.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
+    <Text Include="ReadMe.txt">
       <Filter>Resource Files</Filter>
     </Text>
   </ItemGroup>
