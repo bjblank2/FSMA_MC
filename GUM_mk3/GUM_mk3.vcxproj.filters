@@ -73,6 +73,9 @@
     <Text Include="OUTCAR.txt">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="ReadMe.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <None Include="Cluster_Rules_NEW">

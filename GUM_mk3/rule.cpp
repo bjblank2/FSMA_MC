@@ -1,5 +1,7 @@
 #include "rule.h"
  
+
+// This is the rule class (mc_rules object). It servs as a container for the MC rules and is used to create the rule map
 Rule::Rule(void) {
 }    
 

@@ -1,5 +1,6 @@
 #include "cluster.h"
 
+// This class is used only for BEG mixed cluster MC 
 Cluster::Cluster(void) {
 	continue_growth = true;
 	seed = 0;
