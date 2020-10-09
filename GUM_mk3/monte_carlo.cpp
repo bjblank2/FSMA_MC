@@ -839,8 +839,8 @@ void runMetropolis3(float passes, float temp1, float temp2, float temp_inc, SimC
 				spin_total += current_spin; // get spin total
 				if (atom_species_list[site] == 1) {
 					spin_total_Mn += current_spin; // Mn only spin totla
-					spin_total_Mn2 += calcMag2(site, atom_spin_list, neighbor_index_list, neighbor_dist_list); // calc spin product order param
-					//spin_total_Mn2 += stagMag(site, atom_spin_list[site], sim_cell); // calc stag mag order param
+					//spin_total_Mn2 += calcMag2(site, atom_spin_list, neighbor_index_list, neighbor_dist_list); // calc spin product order param
+					spin_total_Mn2 += stagMag(site, atom_spin_list[site], sim_cell); // calc stag mag order param
 				}
 			}
 			spin_avg += spin_total;
@@ -851,7 +851,7 @@ void runMetropolis3(float passes, float temp1, float temp2, float temp_inc, SimC
 		// Output normaized avarages of tracked quantities
 		cout << temp;
 		cout << " , ";
-		cout << e_avg / numb_atoms;
+		cout << e_avg / (numb_atoms / 2);
 		cout << " , ";
 		cout << spin_avg / passes / numb_atoms;
 		cout << " , ";
@@ -1277,7 +1277,7 @@ void runMetropolis5(float passes, float temp1, float temp2, float temp_inc, SimC
 		}
 		cout << temp;
 		cout << " , ";
-		cout << e_avg / numb_atoms; // -4.918174088267291;
+		cout << e_avg / (numb_atoms/2) - 4.918174088267291;
 		cout << " , ";
 		cout << spin_avg / passes / numb_atoms;
 		cout << " , ";

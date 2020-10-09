@@ -181,7 +181,7 @@ void SimCell::setNeighborDists(vector<float> &dist_list) {
 void SimCell::fillAtomList(vector<vector<float>> &_pos_list, vector<int> &_species_list, vector<float> dist_list, string phase_init, string spin_init, string species_init) {
 	// declare or init variables
 	int atom_index = 0;
-	int spin;
+	int spin = 0;
 	int phase = 0; // just a place holder
 	double spin_rand;
 	int index_rand;
